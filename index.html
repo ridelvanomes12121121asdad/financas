@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanças Ridelvan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f0f9ff; }
+        .card-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 149, 255, 0.1), 0 10px 10px -5px rgba(0, 149, 255, 0.04); }
+        .bg-card-white { background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); }
+        .grafico-container { position: relative; height: 180px; width: 100%; }
+    </style>
+</head>
+<body class="antialiased font-sans">
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Cabeçalho -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-800">
+                    <span class="text-blue-600">$</span> Finanças <span class="text-blue-600">Ridelvan</span>
+                </h1>
+                <p class="text-gray-500 mt-1">Seu painel de controle inteligente</p>
+            </div>
+            <div class="mt-4 md:mt-0 bg-white/70 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-sm border border-white/50">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-regular fa-calendar text-blue-500 text-xl"></i>
+                    <span class="text-gray-700 font-medium" id="data-atual">Carregando...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards de Resumo -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="bg-card-white rounded-2xl shadow-sm border border-white p-5 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Saldo do Dia</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1" id="saldo-dia">R$ 0,00</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-xl"><i class="fa-solid fa-scale-balanced text-blue-600 text-xl"></i></div>
+                </div>
+            </div>
+            <div class="bg-card-white rounded-2xl shadow-sm border border-white p-5 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Entradas (Hoje)</p>
+                        <p class="text-2xl font-bold text-green-600 mt-1" id="entradas-dia">R$ 0,00</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-xl"><i class="fa-solid fa-arrow-up text-green-600 text-xl"></i></div>
+                </div>
+            </div>
+            <div class="bg-card-white rounded-2xl shadow-sm border border-white p-5 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Gastos (Hoje)</p>
+                        <p class="text-2xl font-bold text-red-500 mt-1" id="gastos-dia">R$ 0,00</p>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded-xl"><i class="fa-solid fa-arrow-down text-red-500 text-xl"></i></div>
+                </div>
+            </div>
+            <div class="bg-card-white rounded-2xl shadow-sm border border-white p-5 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Dias Trabalhados</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1" id="dias-trabalhados-mes">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-xl"><i class="fa-solid fa-briefcase text-blue-600 text-xl"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Formulário -->
+            <div class="lg:col-span-1">
+                <div class="bg-card-white rounded-2xl shadow-sm border border-white p-6 sticky top-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center"><i class="fa-regular fa-pen-to-square text-blue-600 mr-2"></i>Lançamento Rápido</h2>
+                    <form id="form-lancamento" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Tipo</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="radio" name="tipo" value="entrada" checked class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <span class="text-gray-700">Entrada</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="radio" name="tipo" value="gasto" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <span class="text-gray-700">Gasto</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="descricao" class="block text-sm font-medium text-gray-600 mb-1">Descrição</label>
+                            <input type="text" id="descricao" name="descricao" placeholder="Ex: Freela, Supermercado..." required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition bg-white/50">
+                        </div>
+                        <div>
+                            <label for="valor" class="block text-sm font-medium text-gray-600 mb-1">Valor (R$)</label>
+                            <input type="number" id="valor" name="valor" step="0.01" min="0.01" placeholder="0,00" required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition bg-white/50">
+                        </div>
+                        <div>
+                            <label for="categoria" class="block text-sm font-medium text-gray-600 mb-1">Categoria</label>
+                            <select id="categoria" name="categoria" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition bg-white/50">
+                                <optgroup label="Entradas">
+                                    <option value="Trabalho">💼 Trabalho/Freela</option>
+                                    <option value="Investimento">📈 Investimento</option>
+                                    <option value="Outros">🔄 Outros</option>
+                                </optgroup>
+                                <optgroup label="Gastos">
+                                    <option value="Alimentação">🍎 Alimentação</option>
+                                    <option value="Transporte">🚗 Transporte</option>
+                                    <option value="Lazer">🎮 Lazer</option>
+                                    <option value="Contas">💡 Contas</option>
+                                    <option value="Outros Gastos">📦 Outros Gastos</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-2.5 rounded-xl shadow-md hover:from-blue-600 hover:to-blue-700 transition duration-200 transform hover:scale-[1.02]">
+                            <i class="fa-regular fa-floppy-disk mr-2"></i>Salvar Lançamento
+                        </button>
+                    </form>
+                    <div class="mt-6 pt-4 border-t border-gray-200/70">
+                        <h3 class="font-medium text-gray-700 mb-2 flex items-center"><i class="fa-regular fa-calendar-check text-blue-500 mr-2"></i>Marque hoje como trabalho</h3>
+                        <button id="btn-trabalhei" class="w-full bg-white border border-blue-300 text-blue-700 font-medium py-2 rounded-xl hover:bg-blue-50 transition flex items-center justify-center">
+                            <i class="fa-solid fa-briefcase mr-2"></i> Sim, trabalhei hoje!
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos e Lançamentos -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Gráficos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-card-white rounded-2xl shadow-sm border border-white p-4">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Entradas vs Gastos (Últimos 7 dias)</h3>
+                        <div class="grafico-container">
+                            <canvas id="graficoSemanal"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-card-white rounded-2xl shadow-sm border border-white p-4">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Distribuição de Gastos</h3>
+                        <div class="grafico-container">
+                            <canvas id="graficoGastosCategoria"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tabela de Lançamentos -->
+                <div class="bg-card-white rounded-2xl shadow-sm border border-white p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Últimos Lançamentos</h3>
+                        <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Hoje</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="text-gray-500 border-b border-gray-200/80">
+                                <tr>
+                                    <th class="text-left pb-3 font-medium">Descrição</th>
+                                    <th class="text-left pb-3 font-medium">Categoria</th>
+                                    <th class="text-left pb-3 font-medium">Valor</th>
+                                    <th class="text-left pb-3 font-medium">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-lancamentos-hoje" class="divide-y divide-gray-100">
+                                <tr><td colspan="4" class="text-center py-8 text-gray-400">Nenhum lançamento hoje. Que tal adicionar um?</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendário -->
+        <div class="bg-card-white rounded-2xl shadow-sm border border-white p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center"><i class="fa-regular fa-calendar-alt text-blue-600 mr-2"></i>Histórico de Dias Trabalhados - <span id="mes-ano-atual"></span></h2>
+            <div id="calendario-simples" class="flex flex-wrap gap-2">
+                <span class="text-gray-400 italic">Carregando calendário...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURAÇÃO DO FIREBASE
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC8HXlJ-cU-L_8h2a0WvWABeH6SPKssVQw",
+            authDomain: "emprestimo-b367d.firebaseapp.com",
+            databaseURL: "https://emprestimo-b367d-default-rtdb.firebaseio.com",
+            projectId: "emprestimo-b367d",
+            storageBucket: "emprestimo-b367d.appspot.com",
+            messagingSenderId: "1076353241750",
+            appId: "1:1076353241750:web:9d05bcf8e2ba5695276dfd"
+        };
+
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // ============================================
+        // CORES PARA CADA CATEGORIA (TODAS COM CORES ESPECÍFICAS)
+        // ============================================
+        const coresCategorias = {
+            // Entradas
+            'Trabalho': '#2563eb', // Azul forte
+            'Investimento': '#7c3aed', // Roxo
+            'Outros': '#6b7280', // Cinza
+            
+            // Gastos
+            'Alimentação': '#f59e0b', // Laranja
+            'Transporte': '#3b82f6', // Azul
+            'Lazer': '#8b5cf6', // Roxo claro
+            'Contas': '#10b981', // Verde
+            'Outros Gastos': '#ef4444', // Vermelho
+            
+            // Categoria padrão para qualquer outra
+            'default': '#94a3b8' // Cinza claro
+        };
+
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
+        const dataAtualElem = document.getElementById('data-atual');
+        const saldoDiaElem = document.getElementById('saldo-dia');
+        const entradasDiaElem = document.getElementById('entradas-dia');
+        const gastosDiaElem = document.getElementById('gastos-dia');
+        const diasTrabalhadosMesElem = document.getElementById('dias-trabalhados-mes');
+        const tabelaLancamentos = document.getElementById('tabela-lancamentos-hoje');
+        const mesAnoElem = document.getElementById('mes-ano-atual');
+        const calendarioElem = document.getElementById('calendario-simples');
+        const form = document.getElementById('form-lancamento');
+        const btnTrabalhei = document.getElementById('btn-trabalhei');
+
+        let graficoSemanal = null;
+        let graficoGastosCategoria = null;
+        let dadosCompletos = {};
+
+        // ============================================
+        // UTILITÁRIOS
+        // ============================================
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function obterDataAtualISO() {
+            const hoje = new Date();
+            hoje.setHours(hoje.getHours() - 3);
+            return hoje.toISOString().split('T')[0];
+        }
+
+        function formatarDataLegivel(dataISO) {
+            const [ano, mes, dia] = dataISO.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        // ============================================
+        // FUNÇÕES DO FIREBASE
+        // ============================================
+        function carregarDadosDoFirebase() {
+            return database.ref('/').once('value')
+                .then((snapshot) => {
+                    dadosCompletos = snapshot.val() || {};
+                    console.log('Dados carregados:', dadosCompletos);
+                    return dadosCompletos;
+                })
+                .catch((error) => {
+                    console.error('Erro ao carregar dados:', error);
+                    dadosCompletos = {};
+                    return {};
+                });
+        }
+
+        function salvarDiaNoFirebase(data, infoDia) {
+            return database.ref(`/${data}`).set(infoDia)
+                .catch((error) => console.error('Erro ao salvar:', error));
+        }
+
+        function getDia(data) {
+            return dadosCompletos[data] || { trabalhou: false, entradas: [], gastos: [] };
+        }
+
+        // ============================================
+        // FUNÇÕES DA INTERFACE
+        // ============================================
+        async function carregarInterfaceDoDia(dataISO) {
+            await carregarDadosDoFirebase();
+            
+            const dadosDia = getDia(dataISO);
+
+            // Calcula totais
+            const totalEntradas = dadosDia.entradas?.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0) || 0;
+            const totalGastos = dadosDia.gastos?.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0) || 0;
+            const saldo = totalEntradas - totalGastos;
+
+            saldoDiaElem.textContent = formatarMoeda(saldo);
+            entradasDiaElem.textContent = formatarMoeda(totalEntradas);
+            gastosDiaElem.textContent = formatarMoeda(totalGastos);
+
+            // Preenche tabela
+            let htmlTabela = '';
+            const todosLancamentos = [
+                ...(dadosDia.entradas || []).map((e, index) => ({ ...e, tipo: 'entradas', index, valor: e.valor })),
+                ...(dadosDia.gastos || []).map((g, index) => ({ ...g, tipo: 'gastos', index, valor: g.valor }))
+            ].sort((a, b) => (b.horario || 0) - (a.horario || 0));
+
+            if (todosLancamentos.length === 0) {
+                htmlTabela = '<tr><td colspan="4" class="text-center py-8 text-gray-400">Nenhum lançamento hoje. Que tal adicionar um?</td></tr>';
+            } else {
+                todosLancamentos.forEach(item => {
+                    const sinal = item.tipo === 'entradas' ? 'text-green-600' : 'text-red-500';
+                    const prefixo = item.tipo === 'entradas' ? '+' : '-';
+                    htmlTabela += `<tr class="hover:bg-blue-50/30 transition">
+                        <td class="py-3 text-gray-700">${item.descricao || 'Sem descrição'}</td>
+                        <td class="py-3 text-gray-600">${item.categoria || 'Geral'}</td>
+                        <td class="py-3 font-medium ${sinal}">${prefixo} ${formatarMoeda(item.valor)}</td>
+                        <td class="py-3">
+                            <i class="fa-regular fa-trash-can text-gray-400 hover:text-red-500 cursor-pointer" 
+                               onclick="removerLancamento('${dataISO}', '${item.tipo}', ${item.index})"></i>
+                        </td>
+                    </tr>`;
+                });
+            }
+            tabelaLancamentos.innerHTML = htmlTabela;
+
+            atualizarCalendarioEMetricas(dataISO);
+            atualizarDadosGraficos(dataISO);
+        }
+
+        window.removerLancamento = async function(data, tipo, index) {
+            if (confirm('Tem certeza que deseja remover este lançamento?')) {
+                const dadosDia = getDia(data);
+                if (dadosDia[tipo]) {
+                    dadosDia[tipo].splice(index, 1);
+                    await salvarDiaNoFirebase(data, dadosDia);
+                    carregarInterfaceDoDia(data);
+                }
+            }
+        };
+
+        function atualizarCalendarioEMetricas(dataISO) {
+            const [ano, mes] = dataISO.split('-');
+            const diasNoMes = new Date(ano, mes, 0).getDate();
+            let diasTrabalhados = 0;
+            let htmlCalendario = '';
+
+            for (let d = 1; d <= diasNoMes; d++) {
+                const diaStr = `${ano}-${String(mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dadosDia = dadosCompletos[diaStr] || { trabalhou: false };
+                const trabalhou = dadosDia.trabalhou;
+
+                if (trabalhou) diasTrabalhados++;
+
+                const isHoje = diaStr === obterDataAtualISO();
+                const corFundo = trabalhou ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200';
+                const destaqueHoje = isHoje ? 'ring-2 ring-blue-400 ring-offset-2' : '';
+
+                htmlCalendario += `<span class="w-10 h-10 rounded-full border flex items-center justify-center text-sm font-medium ${corFundo} ${destaqueHoje}">${d}</span>`;
+            }
+
+            calendarioElem.innerHTML = htmlCalendario;
+            diasTrabalhadosMesElem.textContent = diasTrabalhados;
+            mesAnoElem.textContent = new Date(ano, mes-1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        }
+
+        function atualizarDadosGraficos(dataISO) {
+            if (!graficoSemanal || !graficoGastosCategoria) return;
+
+            const hoje = new Date(dataISO + 'T12:00:00');
+            
+            // ===== GRÁFICO SEMANAL =====
+            const dias = [];
+            const entradasSemana = [];
+            const gastosSemana = [];
+            const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            
+            for (let i = 6; i >= 0; i--) {
+                const data = new Date(hoje);
+                data.setDate(data.getDate() - i);
+                const ano = data.getFullYear();
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const dia = String(data.getDate()).padStart(2, '0');
+                const dataStr = `${ano}-${mes}-${dia}`;
+                
+                const dadosDia = dadosCompletos[dataStr] || { entradas: [], gastos: [] };
+                
+                const totalEntradas = dadosDia.entradas?.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0) || 0;
+                const totalGastos = dadosDia.gastos?.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0) || 0;
+                
+                dias.push(diasSemana[data.getDay()]);
+                entradasSemana.push(totalEntradas);
+                gastosSemana.push(totalGastos);
+            }
+
+            graficoSemanal.data.labels = dias;
+            graficoSemanal.data.datasets[0].data = entradasSemana;
+            graficoSemanal.data.datasets[1].data = gastosSemana;
+            
+            const maxValor = Math.max(...entradasSemana, ...gastosSemana, 1);
+            graficoSemanal.options.scales.y.max = Math.ceil(maxValor * 1.1);
+            graficoSemanal.update();
+
+            // ===== GRÁFICO DE DISTRIBUIÇÃO DE GASTOS =====
+            // Categorias que queremos mostrar (incluindo entradas)
+            const categorias = {
+                'Trabalho': 0,
+                'Investimento': 0,
+                'Outros': 0,
+                'Alimentação': 0,
+                'Transporte': 0,
+                'Lazer': 0,
+                'Contas': 0,
+                'Outros Gastos': 0
+            };
+            
+            // Soma todos os valores de todas as categorias
+            Object.values(dadosCompletos || {}).forEach(diaInfo => {
+                // Soma gastos
+                diaInfo.gastos?.forEach(gasto => {
+                    const cat = gasto.categoria;
+                    if (categorias.hasOwnProperty(cat)) {
+                        categorias[cat] += parseFloat(gasto.valor) || 0;
+                    } else {
+                        // Se for uma categoria não listada, coloca em 'Outros Gastos'
+                        categorias['Outros Gastos'] += parseFloat(gasto.valor) || 0;
+                    }
+                });
+                
+                // Soma entradas (se quiser mostrar entradas no gráfico, descomente)
+                // diaInfo.entradas?.forEach(entrada => {
+                //     const cat = entrada.categoria;
+                //     if (categorias.hasOwnProperty(cat)) {
+                //         categorias[cat] += parseFloat(entrada.valor) || 0;
+                //     }
+                // });
+            });
+
+            // Filtra apenas categorias com valores > 0
+            const labels = [];
+            const valores = [];
+            const cores = [];
+            
+            Object.entries(categorias).forEach(([categoria, valor]) => {
+                if (valor > 0) {
+                    labels.push(categoria);
+                    valores.push(valor);
+                    cores.push(coresCategorias[categoria] || coresCategorias.default);
+                }
+            });
+
+            // Se não houver dados, mostra mensagem
+            if (labels.length > 0) {
+                graficoGastosCategoria.data.labels = labels;
+                graficoGastosCategoria.data.datasets[0].data = valores;
+                graficoGastosCategoria.data.datasets[0].backgroundColor = cores;
+                graficoGastosCategoria.data.datasets[0].borderColor = cores.map(cor => cor + '80'); // Cor com transparência para borda
+                graficoGastosCategoria.data.datasets[0].borderWidth = 1;
+            } else {
+                graficoGastosCategoria.data.labels = ['Sem gastos'];
+                graficoGastosCategoria.data.datasets[0].data = [1];
+                graficoGastosCategoria.data.datasets[0].backgroundColor = ['#e5e7eb'];
+                graficoGastosCategoria.data.datasets[0].borderColor = ['#d1d5db'];
+                graficoGastosCategoria.data.datasets[0].borderWidth = 1;
+            }
+            
+            graficoGastosCategoria.update();
+        }
+
+        function inicializarGraficos() {
+            const ctxSemanal = document.getElementById('graficoSemanal').getContext('2d');
+            const ctxPizza = document.getElementById('graficoGastosCategoria').getContext('2d');
+            
+            if (graficoSemanal) graficoSemanal.destroy();
+            if (graficoGastosCategoria) graficoGastosCategoria.destroy();
+
+            // Gráfico Semanal
+            graficoSemanal = new Chart(ctxSemanal, {
+                type: 'line',
+                data: {
+                    labels: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+                    datasets: [{
+                        label: 'Entradas',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }, {
+                        label: 'Gastos',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    animation: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            min: 0,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Distribuição de Gastos
+            graficoGastosCategoria = new Chart(ctxPizza, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sem gastos'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#e5e7eb'],
+                        borderColor: ['#d1d5db'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: { 
+                                boxWidth: 12, 
+                                font: { size: 11 },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map((label, i) => {
+                                            const value = data.datasets[0].data[i];
+                                            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                            return {
+                                                text: `${label} (${percentage}%)`,
+                                                fillStyle: data.datasets[0].backgroundColor[i],
+                                                strokeStyle: data.datasets[0].borderColor[i],
+                                                lineWidth: 1,
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `${label}: ${formatarMoeda(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const descricao = document.getElementById('descricao').value;
+            const valor = parseFloat(document.getElementById('valor').value);
+            const categoria = document.getElementById('categoria').value;
+            const hoje = obterDataAtualISO();
+
+            if (!descricao || !valor || isNaN(valor)) return;
+
+            const dados = { descricao, valor, categoria, horario: Date.now() };
+            
+            const dadosDia = getDia(hoje);
+            if (tipo === 'entrada') {
+                if (!dadosDia.entradas) dadosDia.entradas = [];
+                dadosDia.entradas.push(dados);
+            } else {
+                if (!dadosDia.gastos) dadosDia.gastos = [];
+                dadosDia.gastos.push(dados);
+            }
+
+            await salvarDiaNoFirebase(hoje, dadosDia);
+            
+            form.reset();
+            document.querySelector('input[name="tipo"][value="entrada"]').checked = true;
+            carregarInterfaceDoDia(hoje);
+        });
+
+        btnTrabalhei.addEventListener('click', async () => {
+            const hoje = obterDataAtualISO();
+            const dadosDia = getDia(hoje);
+            dadosDia.trabalhou = true;
+            await salvarDiaNoFirebase(hoje, dadosDia);
+            carregarInterfaceDoDia(hoje);
+        });
+
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        async function iniciar() {
+            const hoje = obterDataAtualISO();
+            dataAtualElem.textContent = formatarDataLegivel(hoje);
+            
+            inicializarGraficos();
+            await carregarInterfaceDoDia(hoje);
+        }
+
+        iniciar();
+    </script>
+</body>
+</html>
