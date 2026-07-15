@@ -2,49 +2,78 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Monitor Histórico</title>
+    <title>Painel de Controle</title>
     <style>
         body { font-family: Arial; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        /* Botão de Desligar no Topo */
+        .header-control {
+            background: #222; border: 2px solid #ff4444; padding: 20px;
+            border-radius: 12px; width: 100%; max-width: 460px;
+            text-align: center; margin-bottom: 30px;
+        }
+        .btn-off {
+            background: #ff4444; color: white; border: none; padding: 15px 25px;
+            font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+        }
+        .btn-off:hover { background: #cc0000; }
+
         .grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 500px; }
         .card { background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #333; position: relative; }
         .num { position: absolute; left: -10px; top: -10px; background: #00e676; color: black; padding: 5px 10px; border-radius: 50%; font-weight: bold; }
         img { max-width: 100%; display: block; border-radius: 5px; margin: 10px 0; background: #000; }
-        .footer { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #888; }
-        .btn-del { background: #ff5252; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .btn-del { background: #555; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <!-- BOTÃO DE DESLIGAR REMOTAMENTE -->
+    <div class="header-control">
+        <h3 style="margin-top:0">Controle Remoto do PC</h3>
+        <button class="btn-off" onclick="enviarComandoDesligar()">🔴 DESLIGAR COMPUTADOR AGORA</button>
+    </div>
+
     <h1>📋 Histórico de Capturas</h1>
     <div class="grid" id="grid"></div>
 
     <script>
-        const url = "https://bacbo-17c22-default-rtdb.asia-southeast1.firebasedatabase.app/historico";
-        
+        const url = "https://bacbo-17c22-default-rtdb.asia-southeast1.firebasedatabase.app/";
+
+        // Função que manda o comando para o banco de dados
+        async function enviarComandoDesligar() {
+            if(confirm("Deseja realmente DESLIGAR o computador remotamente?")) {
+                await fetch(url + "comando.json", {
+                    method: 'PATCH',
+                    body: JSON.stringify({ desligar: true })
+                });
+                alert("Comando enviado! O PC vai desligar em 10 segundos.");
+            }
+        }
+
         async function apagar(id) {
-            if(confirm("Apagar do banco?")) {
-                await fetch(`${url}/${id}.json`, { method: 'DELETE' });
+            if(confirm("Apagar?")) {
+                await fetch(`${url}historico/${id}.json`, { method: 'DELETE' });
                 carregar();
             }
         }
 
         async function carregar() {
             try {
-                const res = await fetch(`${url}.json`);
+                const res = await fetch(url + "historico.json");
                 const dados = await res.json();
                 const grid = document.getElementById('grid');
                 grid.innerHTML = "";
                 if(!dados) return;
 
-                // Transforma em lista e inverte (mais novos primeiro)
                 const itens = Object.keys(dados).map(k => ({id: k, ...dados[k]})).reverse();
-
                 itens.forEach((item, i) => {
                     const div = document.createElement('div');
                     div.className = 'card';
                     div.innerHTML = `
                         <div class="num">${itens.length - i}</div>
                         <img src="${item.imagem}">
-                        <div class="footer">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#888;">
                             <span>🕒 ${item.timestamp}</span>
                             <button class="btn-del" onclick="apagar('${item.id}')">Apagar</button>
                         </div>
@@ -54,7 +83,7 @@
             } catch(e) {}
         }
 
-        setInterval(carregar, 2000);
+        setInterval(carregar, 3000);
         carregar();
     </script>
 </body>
