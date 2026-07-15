@@ -2,89 +2,506 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle</title>
     <style>
-        body { font-family: Arial; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        /* Botão de Desligar no Topo */
-        .header-control {
-            background: #222; border: 2px solid #ff4444; padding: 20px;
-            border-radius: 12px; width: 100%; max-width: 460px;
-            text-align: center; margin-bottom: 30px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .btn-off {
-            background: #ff4444; color: white; border: none; padding: 15px 25px;
-            font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
-        }
-        .btn-off:hover { background: #cc0000; }
 
-        .grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 500px; }
-        .card { background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #333; position: relative; }
-        .num { position: absolute; left: -10px; top: -10px; background: #00e676; color: black; padding: 5px 10px; border-radius: 50%; font-weight: bold; }
-        img { max-width: 100%; display: block; border-radius: 5px; margin: 10px 0; background: #000; }
-        .btn-del { background: #555; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+            padding: 30px 25px;
+            margin-top: 20px;
+        }
+
+        /* ---- BOTÃO DESLIGAR (moderno) ---- */
+        .header-control {
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 20px 20px 18px;
+            text-align: center;
+            margin-bottom: 32px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .header-control h3 {
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: #334155;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-off {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(220, 38, 38, 0.25);
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-off:hover {
+            background: #b91c1c;
+            transform: scale(1.02);
+            box-shadow: 0 12px 24px rgba(220, 38, 38, 0.35);
+        }
+
+        .btn-off:active {
+            transform: scale(0.96);
+        }
+
+        /* ---- Galeria / comparação ---- */
+        .galeria {
+            margin: 30px 0 35px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .card-imagem {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 16px 16px 14px;
+            border: 1px solid #e9edf2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            transition: 0.15s;
+        }
+
+        .card-imagem:hover {
+            border-color: #cbd5e1;
+        }
+
+        .card-imagem .legenda {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .card-imagem .legenda span {
+            background: #e9edf2;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            color: #1e293b;
+        }
+
+        .card-imagem img {
+            width: 100%;
+            border-radius: 16px;
+            display: block;
+            background: #e2e8f0;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+        }
+
+        .card-imagem .btn-del {
+            background: #e9edf2;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .card-imagem .btn-del:hover {
+            background: #d1d9e6;
+        }
+
+        .sem-imagem {
+            text-align: center;
+            padding: 30px 10px;
+            color: #94a3b8;
+            background: #f1f5f9;
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+
+        /* ---- CALCULADORA (soma e subtração) ---- */
+        .calculadora {
+            margin: 10px 0 5px;
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 22px 20px 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .calculadora h4 {
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+
+        .calc-linha {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .calc-linha input {
+            padding: 10px 14px;
+            border-radius: 40px;
+            border: 1px solid #d1d9e6;
+            background: white;
+            font-size: 1rem;
+            width: 100px;
+            text-align: center;
+            outline: none;
+            transition: 0.15s;
+            font-weight: 500;
+        }
+
+        .calc-linha input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        .calc-linha .operador {
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: #334155;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .calc-linha button {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.15s;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(59,130,246,0.2);
+        }
+
+        .calc-linha button:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        .calc-linha button:active {
+            transform: scale(0.95);
+        }
+
+        .calc-resultado {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 14px;
+            color: #0f172a;
+            background: white;
+            padding: 10px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .calc-resultado span {
+            color: #3b82f6;
+        }
+
+        /* ---- senha ---- */
+        .senha-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            backdrop-filter: blur(2px);
+        }
+
+        .senha-box {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 40px;
+            box-shadow: 0 40px 60px -20px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 360px;
+            width: 90%;
+        }
+
+        .senha-box h2 {
+            font-weight: 500;
+            color: #0f172a;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .senha-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 60px;
+            border: 1px solid #d1d9e6;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 18px;
+            outline: none;
+        }
+
+        .senha-box input:focus {
+            border-color: #3b82f6;
+        }
+
+        .senha-box button {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.15s;
+        }
+
+        .senha-box button:hover {
+            background: #1e293b;
+        }
+
+        .senha-erro {
+            color: #dc2626;
+            margin-top: 12px;
+            font-size: 0.85rem;
+        }
+
+        /* ---- responsivo ---- */
+        @media (max-width: 480px) {
+            .container { padding: 16px; }
+            .calc-linha input { width: 70px; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- BOTÃO DE DESLIGAR REMOTAMENTE -->
-    <div class="header-control">
-        <h3 style="margin-top:0">Controle Remoto do PC</h3>
-        <button class="btn-off" onclick="enviarComandoDesligar()">🔴 DESLIGAR COMPUTADOR AGORA</button>
+    <!-- TELA DE SENHA -->
+    <div class="senha-overlay" id="senhaOverlay">
+        <div class="senha-box">
+            <h2>🔐 Acesso Restrito</h2>
+            <input type="password" id="senhaInput" placeholder="Digite a senha" autofocus>
+            <button onclick="verificarSenha()">Entrar</button>
+            <div id="senhaErro" class="senha-erro"></div>
+        </div>
     </div>
 
-    <h1>📋 Histórico de Capturas</h1>
-    <div class="grid" id="grid"></div>
+    <!-- CONTEÚDO PRINCIPAL (protegido) -->
+    <div id="conteudoPrincipal" style="display:none; width:100%; max-width:700px;">
+
+        <div class="container">
+
+            <!-- BOTÃO DESLIGAR (moderno) -->
+            <div class="header-control">
+                <h3>🔌 Controle Remoto</h3>
+                <button class="btn-off" onclick="enviarComandoDesligar()">
+                    ⚡ DESLIGAR COMPUTADOR
+                </button>
+            </div>
+
+            <!-- GALERIA: apenas duas imagens (primeira e última) -->
+            <h2 style="font-weight:500; font-size:1.2rem; margin-bottom:6px; color:#0f172a;">📸 Comparação</h2>
+            <p style="color:#64748b; font-size:0.9rem; margin-bottom:18px;">Imagem mais antiga · Imagem mais recente</p>
+            <div class="galeria" id="galeriaContainer">
+                <div class="sem-imagem">Nenhuma imagem disponível.</div>
+            </div>
+
+            <!-- CALCULADORA (soma / subtração) -->
+            <div class="calculadora">
+                <h4>🧮 Calculadora simples</h4>
+                <div class="calc-linha">
+                    <input type="number" id="valorA" value="0" step="any">
+                    <span class="operador" id="operadorSinal">+</span>
+                    <input type="number" id="valorB" value="0" step="any">
+                    <button onclick="calcular('+')">➕ Somar</button>
+                    <button onclick="calcular('-')" style="background:#64748b; box-shadow:0 4px 10px rgba(100,116,139,0.2);">➖ Subtrair</button>
+                </div>
+                <div class="calc-resultado">
+                    Resultado: <span id="resultadoCalc">0</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     <script>
-        const url = "https://bacbo-17c22-default-rtdb.asia-southeast1.firebasedatabase.app/";
+        // -------- CONFIGURAÇÕES --------
+        const SENHA_CORRETA = "Dellplay321#";
+        const URL_FIREBASE = "https://bacbo-17c22-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
-        // Função que manda o comando para o banco de dados
+        // -------- SENHA --------
+        function verificarSenha() {
+            const input = document.getElementById('senhaInput');
+            const erro = document.getElementById('senhaErro');
+            if (input.value === SENHA_CORRETA) {
+                document.getElementById('senhaOverlay').style.display = 'none';
+                document.getElementById('conteudoPrincipal').style.display = 'block';
+                carregarGaleria(); // carrega as imagens
+                setInterval(carregarGaleria, 4000); // atualiza a cada 4s
+            } else {
+                erro.textContent = 'Senha incorreta. Tente novamente.';
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // permitir Enter no campo senha
+        document.getElementById('senhaInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verificarSenha();
+        });
+
+        // -------- DESLIGAR --------
         async function enviarComandoDesligar() {
-            if(confirm("Deseja realmente DESLIGAR o computador remotamente?")) {
-                await fetch(url + "comando.json", {
-                    method: 'PATCH',
-                    body: JSON.stringify({ desligar: true })
-                });
-                alert("Comando enviado! O PC vai desligar em 10 segundos.");
+            if (confirm("⚠️ Deseja realmente DESLIGAR o computador remotamente?")) {
+                try {
+                    await fetch(URL_FIREBASE + "comando.json", {
+                        method: 'PATCH',
+                        body: JSON.stringify({ desligar: true })
+                    });
+                    alert("✅ Comando enviado! O PC será desligado em 10 segundos.");
+                } catch (e) {
+                    alert("Erro ao enviar comando.");
+                }
             }
         }
 
-        async function apagar(id) {
-            if(confirm("Apagar?")) {
-                await fetch(`${url}historico/${id}.json`, { method: 'DELETE' });
-                carregar();
-            }
-        }
-
-        async function carregar() {
+        // -------- APAGAR (apenas para manter funcional) --------
+        async function apagarImagem(id) {
+            if (!confirm("Apagar esta imagem?")) return;
             try {
-                const res = await fetch(url + "historico.json");
-                const dados = await res.json();
-                const grid = document.getElementById('grid');
-                grid.innerHTML = "";
-                if(!dados) return;
+                await fetch(`${URL_FIREBASE}historico/${id}.json`, { method: 'DELETE' });
+                carregarGaleria();
+            } catch (e) {}
+        }
 
-                const itens = Object.keys(dados).map(k => ({id: k, ...dados[k]})).reverse();
-                itens.forEach((item, i) => {
-                    const div = document.createElement('div');
-                    div.className = 'card';
-                    div.innerHTML = `
-                        <div class="num">${itens.length - i}</div>
-                        <img src="${item.imagem}">
-                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#888;">
-                            <span>🕒 ${item.timestamp}</span>
-                            <button class="btn-del" onclick="apagar('${item.id}')">Apagar</button>
+        // -------- CARREGAR GALERIA (somente primeira e última) --------
+        async function carregarGaleria() {
+            const container = document.getElementById('galeriaContainer');
+            try {
+                const res = await fetch(URL_FIREBASE + "historico.json");
+                const dados = await res.json();
+                if (!dados) {
+                    container.innerHTML = `<div class="sem-imagem">Nenhuma imagem disponível.</div>`;
+                    return;
+                }
+
+                // Converte para array de objetos com id
+                const lista = Object.keys(dados).map(key => ({
+                    id: key,
+                    ...dados[key]
+                }));
+
+                if (lista.length === 0) {
+                    container.innerHTML = `<div class="sem-imagem">Nenhuma imagem disponível.</div>`;
+                    return;
+                }
+
+                // Ordena por timestamp (crescente) – assume que timestamp é comparável
+                lista.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+
+                // Pega a primeira e a última (se forem diferentes)
+                const primeira = lista[0];
+                const ultima = lista[lista.length - 1];
+
+                let html = '';
+
+                // Função para montar o card
+                function montarCard(item, label) {
+                    if (!item || !item.imagem) return '';
+                    return `
+                        <div class="card-imagem">
+                            <div class="legenda">
+                                <span>${label}</span>
+                                <span>🕒 ${item.timestamp || 'sem data'}</span>
+                            </div>
+                            <img src="${item.imagem}" alt="captura" loading="lazy">
+                            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                                <button class="btn-del" onclick="apagarImagem('${item.id}')">🗑️ Apagar</button>
+                            </div>
                         </div>
                     `;
-                    grid.appendChild(div);
-                });
-            } catch(e) {}
+                }
+
+                // Se só tem uma imagem, mostra ela como "Única"
+                if (lista.length === 1) {
+                    html = montarCard(primeira, '📌 Única imagem');
+                } else {
+                    // Mostra a primeira (mais antiga) e a última (mais recente)
+                    html = montarCard(primeira, '⏳ Primeira (mais antiga)');
+                    html += montarCard(ultima, '🆕 Última (mais recente)');
+                }
+
+                container.innerHTML = html;
+
+            } catch (e) {
+                container.innerHTML = `<div class="sem-imagem">Erro ao carregar imagens.</div>`;
+            }
         }
 
-        setInterval(carregar, 3000);
-        carregar();
+        // -------- CALCULADORA (soma e subtração) --------
+        function calcular(operacao) {
+            const a = parseFloat(document.getElementById('valorA').value) || 0;
+            const b = parseFloat(document.getElementById('valorB').value) || 0;
+            let resultado = 0;
+            let sinal = '+';
+
+            if (operacao === '+') {
+                resultado = a + b;
+                sinal = '+';
+            } else if (operacao === '-') {
+                resultado = a - b;
+                sinal = '−';
+            }
+
+            document.getElementById('operadorSinal').textContent = sinal;
+            document.getElementById('resultadoCalc').textContent = resultado;
+        }
+
+        // Inicializa a calculadora com 0
+        document.addEventListener('DOMContentLoaded', () => {
+            calcular('+');
+        });
     </script>
+
 </body>
 </html>
