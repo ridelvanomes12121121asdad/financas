@@ -77,12 +77,69 @@
             transform: scale(0.96);
         }
 
-        /* ---- Galeria / comparação ---- */
+        /* ---- Filtros de data ---- */
+        .filtros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 20px 0 18px;
+            justify-content: center;
+        }
+
+        .filtros button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .filtros button:hover {
+            background: #e2e8f0;
+        }
+
+        .filtros button.ativo {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+
+        .btn-abrir-todas {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 5px 0 15px;
+        }
+
+        .btn-abrir-todas:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        .btn-abrir-todas:active {
+            transform: scale(0.96);
+        }
+
+        /* ---- Galeria ---- */
         .galeria {
-            margin: 30px 0 35px;
+            margin: 10px 0 25px;
             display: flex;
             flex-direction: column;
-            gap: 28px;
+            gap: 24px;
         }
 
         .card-imagem {
@@ -124,6 +181,12 @@
             aspect-ratio: 16 / 9;
             object-fit: cover;
             border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .card-imagem img:hover {
+            transform: scale(1.01);
         }
 
         .card-imagem .btn-del {
@@ -151,7 +214,97 @@
             font-size: 0.95rem;
         }
 
-        /* ---- CALCULADORA (soma e subtração) ---- */
+        /* ---- Modal (todas as imagens) ---- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 32px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            padding: 30px 25px;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .modal-content .fechar-modal {
+            position: sticky;
+            top: 0;
+            float: right;
+            background: #dc2626;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            z-index: 10;
+        }
+
+        .modal-content h2 {
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #0f172a;
+            clear: both;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .modal-grid .mini-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e9edf2;
+        }
+
+        .modal-grid .mini-card img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+        }
+
+        .modal-grid .mini-card .info {
+            padding: 8px 10px;
+            font-size: 0.7rem;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-grid .mini-card .info button {
+            background: #e9edf2;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+
+        /* ---- CALCULADORA ---- */
         .calculadora {
             margin: 10px 0 5px;
             background: #f1f5f9;
@@ -240,7 +393,7 @@
             color: #3b82f6;
         }
 
-        /* ---- senha ---- */
+        /* ---- Senha ---- */
         .senha-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -307,10 +460,10 @@
             font-size: 0.85rem;
         }
 
-        /* ---- responsivo ---- */
         @media (max-width: 480px) {
             .container { padding: 16px; }
             .calc-linha input { width: 70px; }
+            .modal-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
         }
     </style>
 </head>
@@ -326,12 +479,12 @@
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL (protegido) -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <div id="conteudoPrincipal" style="display:none; width:100%; max-width:700px;">
 
         <div class="container">
 
-            <!-- BOTÃO DESLIGAR (moderno) -->
+            <!-- BOTÃO DESLIGAR -->
             <div class="header-control">
                 <h3>🔌 Controle Remoto</h3>
                 <button class="btn-off" onclick="enviarComandoDesligar()">
@@ -339,14 +492,30 @@
                 </button>
             </div>
 
-            <!-- GALERIA: apenas duas imagens (primeira e última) -->
-            <h2 style="font-weight:500; font-size:1.2rem; margin-bottom:6px; color:#0f172a;">📸 Comparação</h2>
-            <p style="color:#64748b; font-size:0.9rem; margin-bottom:18px;">Imagem mais antiga · Imagem mais recente</p>
+            <!-- GALERIA COMPARATIVA -->
+            <h2 style="font-weight:500; font-size:1.2rem; margin-bottom:4px; color:#0f172a;">📸 Comparação</h2>
+            <p style="color:#64748b; font-size:0.85rem; margin-bottom:12px;">Última captura no topo · Primeira abaixo</p>
+
+            <!-- FILTROS -->
+            <div class="filtros">
+                <button class="ativo" data-filtro="todas" onclick="aplicarFiltro('todas', this)">📅 Todas</button>
+                <button data-filtro="24h" onclick="aplicarFiltro('24h', this)">🕐 Últimas 24h</button>
+                <button data-filtro="semana" onclick="aplicarFiltro('semana', this)">📆 Esta semana</button>
+                <button data-filtro="mes" onclick="aplicarFiltro('mes', this)">📅 Este mês</button>
+            </div>
+
+            <!-- Botão para abrir todas em modal -->
+            <div style="text-align: center; margin-bottom: 15px;">
+                <button class="btn-abrir-todas" onclick="abrirTodasImagens()">
+                    🖼️ Ver todas as imagens
+                </button>
+            </div>
+
             <div class="galeria" id="galeriaContainer">
                 <div class="sem-imagem">Nenhuma imagem disponível.</div>
             </div>
 
-            <!-- CALCULADORA (soma / subtração) -->
+            <!-- CALCULADORA -->
             <div class="calculadora">
                 <h4>🧮 Calculadora simples</h4>
                 <div class="calc-linha">
@@ -364,10 +533,23 @@
         </div>
     </div>
 
+    <!-- MODAL PARA TODAS AS IMAGENS -->
+    <div class="modal-overlay" id="modalTodas">
+        <div class="modal-content">
+            <button class="fechar-modal" onclick="fecharModal()">✕</button>
+            <h2>📸 Todas as imagens</h2>
+            <div class="modal-grid" id="modalGrid">
+                <!-- preenchido via JS -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // -------- CONFIGURAÇÕES --------
         const SENHA_CORRETA = "Dellplay321#";
         const URL_FIREBASE = "https://bacbo-17c22-default-rtdb.asia-southeast1.firebasedatabase.app/";
+        let todasImagensCache = [];
+        let filtroAtual = 'todas';
 
         // -------- SENHA --------
         function verificarSenha() {
@@ -376,8 +558,8 @@
             if (input.value === SENHA_CORRETA) {
                 document.getElementById('senhaOverlay').style.display = 'none';
                 document.getElementById('conteudoPrincipal').style.display = 'block';
-                carregarGaleria(); // carrega as imagens
-                setInterval(carregarGaleria, 4000); // atualiza a cada 4s
+                carregarGaleria();
+                setInterval(carregarGaleria, 5000);
             } else {
                 erro.textContent = 'Senha incorreta. Tente novamente.';
                 input.value = '';
@@ -385,7 +567,6 @@
             }
         }
 
-        // permitir Enter no campo senha
         document.getElementById('senhaInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') verificarSenha();
         });
@@ -405,16 +586,28 @@
             }
         }
 
-        // -------- APAGAR (apenas para manter funcional) --------
+        // -------- APAGAR --------
         async function apagarImagem(id) {
             if (!confirm("Apagar esta imagem?")) return;
             try {
                 await fetch(`${URL_FIREBASE}historico/${id}.json`, { method: 'DELETE' });
-                carregarGaleria();
+                await carregarGaleria();
+                // Se o modal estiver aberto, recarrega também
+                if (document.getElementById('modalTodas').style.display === 'flex') {
+                    abrirTodasImagens();
+                }
             } catch (e) {}
         }
 
-        // -------- CARREGAR GALERIA (somente primeira e última) --------
+        // -------- FILTROS --------
+        function aplicarFiltro(filtro, botao) {
+            filtroAtual = filtro;
+            document.querySelectorAll('.filtros button').forEach(btn => btn.classList.remove('ativo'));
+            if (botao) botao.classList.add('ativo');
+            carregarGaleria();
+        }
+
+        // -------- CARREGAR GALERIA (com filtro) --------
         async function carregarGaleria() {
             const container = document.getElementById('galeriaContainer');
             try {
@@ -422,39 +615,46 @@
                 const dados = await res.json();
                 if (!dados) {
                     container.innerHTML = `<div class="sem-imagem">Nenhuma imagem disponível.</div>`;
+                    todasImagensCache = [];
                     return;
                 }
 
-                // Converte para array de objetos com id
-                const lista = Object.keys(dados).map(key => ({
+                // Converte para array
+                let lista = Object.keys(dados).map(key => ({
                     id: key,
                     ...dados[key]
                 }));
 
+                // Filtra por data se necessário
+                lista = filtrarPorData(lista, filtroAtual);
+
                 if (lista.length === 0) {
-                    container.innerHTML = `<div class="sem-imagem">Nenhuma imagem disponível.</div>`;
+                    container.innerHTML = `<div class="sem-imagem">Nenhuma imagem neste período.</div>`;
+                    todasImagensCache = lista;
                     return;
                 }
 
-                // Ordena por timestamp (crescente) – assume que timestamp é comparável
-                lista.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+                // Ordena por timestamp (mais recente primeiro)
+                lista.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
 
-                // Pega a primeira e a última (se forem diferentes)
-                const primeira = lista[0];
-                const ultima = lista[lista.length - 1];
+                // Cache para o modal
+                todasImagensCache = lista;
+
+                // Pega a primeira (mais recente) e a última (mais antiga) da lista filtrada
+                const maisRecente = lista[0];
+                const maisAntiga = lista[lista.length - 1];
 
                 let html = '';
 
-                // Função para montar o card
-                function montarCard(item, label) {
+                function montarCard(item, label, cor) {
                     if (!item || !item.imagem) return '';
                     return `
                         <div class="card-imagem">
                             <div class="legenda">
-                                <span>${label}</span>
+                                <span style="background:${cor || '#e9edf2'};">${label}</span>
                                 <span>🕒 ${item.timestamp || 'sem data'}</span>
                             </div>
-                            <img src="${item.imagem}" alt="captura" loading="lazy">
+                            <img src="${item.imagem}" alt="captura" loading="lazy" onclick="abrirModalComImagem('${item.imagem}')">
                             <div style="display:flex; justify-content:flex-end; margin-top:8px;">
                                 <button class="btn-del" onclick="apagarImagem('${item.id}')">🗑️ Apagar</button>
                             </div>
@@ -462,13 +662,11 @@
                     `;
                 }
 
-                // Se só tem uma imagem, mostra ela como "Única"
                 if (lista.length === 1) {
-                    html = montarCard(primeira, '📌 Única imagem');
+                    html = montarCard(maisRecente, '📌 Única imagem', '#dbeafe');
                 } else {
-                    // Mostra a primeira (mais antiga) e a última (mais recente)
-                    html = montarCard(primeira, '⏳ Primeira (mais antiga)');
-                    html += montarCard(ultima, '🆕 Última (mais recente)');
+                    html = montarCard(maisRecente, '🆕 Mais recente', '#d1fae5');
+                    html += montarCard(maisAntiga, '⏳ Mais antiga', '#fef3c7');
                 }
 
                 container.innerHTML = html;
@@ -478,7 +676,110 @@
             }
         }
 
-        // -------- CALCULADORA (soma e subtração) --------
+        // -------- FILTRAR POR DATA --------
+        function filtrarPorData(lista, filtro) {
+            if (filtro === 'todas') return lista;
+
+            const agora = new Date();
+            let limite = new Date();
+
+            switch(filtro) {
+                case '24h':
+                    limite.setHours(agora.getHours() - 24);
+                    break;
+                case 'semana':
+                    limite.setDate(agora.getDate() - 7);
+                    break;
+                case 'mes':
+                    limite.setMonth(agora.getMonth() - 1);
+                    break;
+                default:
+                    return lista;
+            }
+
+            return lista.filter(item => {
+                if (!item.timestamp) return false;
+                // Tenta parsear o timestamp (formato: "DD/MM/YYYY, HH:MM:SS")
+                const partes = item.timestamp.match(/(\d{2})\/(\d{2})\/(\d{4}),\s*(\d{2}):(\d{2}):(\d{2})/);
+                if (!partes) return false;
+                const dataItem = new Date(
+                    parseInt(partes[3]),  // ano
+                    parseInt(partes[2]) - 1, // mês (0-index)
+                    parseInt(partes[1]),  // dia
+                    parseInt(partes[4]),  // hora
+                    parseInt(partes[5]),  // minuto
+                    parseInt(partes[6])   // segundo
+                );
+                return dataItem >= limite;
+            });
+        }
+
+        // -------- ABRIR MODAL COM TODAS AS IMAGENS --------
+        function abrirTodasImagens() {
+            const modal = document.getElementById('modalTodas');
+            const grid = document.getElementById('modalGrid');
+
+            if (todasImagensCache.length === 0) {
+                grid.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:30px;">Nenhuma imagem disponível.</p>';
+            } else {
+                let html = '';
+                // Ordena por timestamp (mais recente primeiro)
+                const sorted = [...todasImagensCache].sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                sorted.forEach(item => {
+                    if (!item.imagem) return;
+                    html += `
+                        <div class="mini-card">
+                            <img src="${item.imagem}" alt="captura" loading="lazy" onclick="abrirModalComImagem('${item.imagem}')">
+                            <div class="info">
+                                <span>🕒 ${item.timestamp || 'sem data'}</span>
+                                <button onclick="apagarImagem('${item.id}')">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+            }
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // -------- ABRIR IMAGEM EM TELA CHEIA (clique na imagem) --------
+        function abrirModalComImagem(url) {
+            const modal = document.getElementById('modalTodas');
+            const grid = document.getElementById('modalGrid');
+            // Substitui o grid por uma única imagem em destaque
+            grid.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center;">
+                    <img src="${url}" alt="imagem ampliada" style="max-width:100%; border-radius:16px; max-height:70vh; object-fit:contain;">
+                    <br><br>
+                    <button onclick="abrirTodasImagens()" style="background:#f1f5f9; border:1px solid #e2e8f0; padding:8px 24px; border-radius:40px; cursor:pointer; font-weight:500;">
+                        ↩️ Voltar para todas
+                    </button>
+                </div>
+            `;
+            // Mantém o modal aberto
+            modal.style.display = 'flex';
+        }
+
+        // -------- FECHAR MODAL --------
+        function fecharModal() {
+            document.getElementById('modalTodas').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            // Recarrega o grid para o estado normal
+            setTimeout(() => {
+                if (document.getElementById('modalTodas').style.display === 'none') {
+                    // Não faz nada, apenas garante que ao reabrir vai recarregar
+                }
+            }, 100);
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modalTodas').addEventListener('click', function(e) {
+            if (e.target === this) fecharModal();
+        });
+
+        // -------- CALCULADORA --------
         function calcular(operacao) {
             const a = parseFloat(document.getElementById('valorA').value) || 0;
             const b = parseFloat(document.getElementById('valorB').value) || 0;
@@ -497,7 +798,7 @@
             document.getElementById('resultadoCalc').textContent = resultado;
         }
 
-        // Inicializa a calculadora com 0
+        // Inicializa
         document.addEventListener('DOMContentLoaded', () => {
             calcular('+');
         });
