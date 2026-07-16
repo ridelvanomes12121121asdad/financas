@@ -32,7 +32,58 @@
             margin-top: 20px;
         }
 
-        /* ---- BOTÃO DESLIGAR (moderno) ---- */
+        /* ---- Status do programa ---- */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 12px 20px;
+            border-radius: 60px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-label {
+            font-weight: 500;
+            color: #334155;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+        }
+
+        .status-text.online {
+            color: #16a34a;
+        }
+
+        .status-text.offline {
+            color: #dc2626;
+        }
+
+        /* ---- BOTÃO DESLIGAR ---- */
         .header-control {
             background: #f1f5f9;
             border-radius: 24px;
@@ -77,35 +128,132 @@
             transform: scale(0.96);
         }
 
-        /* ---- Filtros de data ---- */
-        .filtros {
+        /* ---- Valor Inicial ---- */
+        .valor-inicial {
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 20px 20px 18px;
+            margin-bottom: 32px;
+            border: 2px solid #e2e8f0;
+            transition: border-color 0.3s;
+        }
+
+        .valor-inicial:hover {
+            border-color: #94a3b8;
+        }
+
+        .valor-inicial .label-destaque {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
             flex-wrap: wrap;
             gap: 8px;
-            margin: 20px 0 18px;
-            justify-content: center;
         }
 
-        .filtros button {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #334155;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-
-        .filtros button:hover {
+        .valor-inicial .label-destaque span {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #0f172a;
             background: #e2e8f0;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .filtros button.ativo {
+        .valor-inicial .label-destaque h3 {
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: #0f172a;
+        }
+
+        .valor-inicial .linha-valor {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .valor-inicial .linha-valor input {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 16px;
+            border-radius: 60px;
+            border: 2px solid #d1d9e6;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0f172a;
+            background: white;
+            outline: none;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .valor-inicial .linha-valor input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .valor-inicial .linha-valor input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .valor-inicial .linha-valor button {
             background: #0f172a;
             color: white;
-            border-color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .valor-inicial .linha-valor button:hover {
+            background: #1e293b;
+            transform: scale(1.02);
+        }
+
+        .valor-inicial .linha-valor button:active {
+            transform: scale(0.96);
+        }
+
+        .valor-inicial .valor-atual {
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: white;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .valor-inicial .valor-atual .rotulo {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .valor-inicial .valor-atual .numero {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+            background: #f1f5f9;
+            padding: 2px 18px;
+            border-radius: 40px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .valor-inicial .valor-atual .numero.destaque {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border: 2px solid #93c5fd;
         }
 
         /* ---- Galeria ---- */
@@ -170,95 +318,6 @@
             background: #f1f5f9;
             border-radius: 20px;
             font-size: 0.95rem;
-        }
-
-        /* ---- CALCULADORA ---- */
-        .calculadora {
-            margin: 10px 0 5px;
-            background: #f1f5f9;
-            border-radius: 24px;
-            padding: 22px 20px 20px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .calculadora h4 {
-            font-weight: 500;
-            color: #334155;
-            margin-bottom: 14px;
-            font-size: 0.95rem;
-            letter-spacing: 0.3px;
-        }
-
-        .calc-linha {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .calc-linha input {
-            padding: 10px 14px;
-            border-radius: 40px;
-            border: 1px solid #d1d9e6;
-            background: white;
-            font-size: 1rem;
-            width: 100px;
-            text-align: center;
-            outline: none;
-            transition: 0.15s;
-            font-weight: 500;
-        }
-
-        .calc-linha input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
-        }
-
-        .calc-linha .operador {
-            font-weight: 600;
-            font-size: 1.3rem;
-            color: #334155;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .calc-linha button {
-            background: #3b82f6;
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 10px 18px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.15s;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 10px rgba(59,130,246,0.2);
-        }
-
-        .calc-linha button:hover {
-            background: #2563eb;
-            transform: scale(1.02);
-        }
-
-        .calc-linha button:active {
-            transform: scale(0.95);
-        }
-
-        .calc-resultado {
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-top: 14px;
-            color: #0f172a;
-            background: white;
-            padding: 10px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .calc-resultado span {
-            color: #3b82f6;
         }
 
         /* ---- Senha ---- */
@@ -330,7 +389,8 @@
 
         @media (max-width: 480px) {
             .container { padding: 16px; }
-            .calc-linha input { width: 70px; }
+            .valor-inicial .linha-valor input { min-width: 100px; }
+            .valor-inicial .linha-valor button { padding: 10px 16px; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -351,6 +411,15 @@
 
         <div class="container">
 
+            <!-- STATUS DO PROGRAMA -->
+            <div class="status-bar">
+                <span class="status-label">📡 Monitoramento</span>
+                <div class="status-indicator">
+                    <span class="status-dot offline" id="statusDot"></span>
+                    <span class="status-text offline" id="statusText">Offline</span>
+                </div>
+            </div>
+
             <!-- BOTÃO DESLIGAR -->
             <div class="header-control">
                 <h3>🔌 Controle Remoto</h3>
@@ -359,45 +428,37 @@
                 </button>
             </div>
 
-            <!-- GALERIA COMPARATIVA -->
-            <h2 style="font-weight:500; font-size:1.2rem; margin-bottom:4px; color:#0f172a;">📸 Comparação</h2>
-            <p style="color:#64748b; font-size:0.85rem; margin-bottom:12px;">Última captura no topo · Primeira abaixo</p>
-
-            <!-- FILTROS -->
-            <div class="filtros">
-                <button class="ativo" data-filtro="todas" onclick="aplicarFiltro('todas', this)">📅 Todas</button>
-                <button data-filtro="24h" onclick="aplicarFiltro('24h', this)">🕐 Últimas 24h</button>
-                <button data-filtro="semana" onclick="aplicarFiltro('semana', this)">📆 Esta semana</button>
-                <button data-filtro="mes" onclick="aplicarFiltro('mes', this)">📅 Este mês</button>
+            <!-- VALOR INICIAL -->
+            <div class="valor-inicial">
+                <div class="label-destaque">
+                    <h3>📊 Valor de Referência</h3>
+                    <span>Início</span>
+                </div>
+                <div class="linha-valor">
+                    <input type="number" id="valorInicialInput" placeholder="Digite um valor" step="any">
+                    <button onclick="definirValorInicial()">Definir</button>
+                </div>
+                <div class="valor-atual">
+                    <span class="rotulo">Valor atual:</span>
+                    <span class="numero" id="valorAtualDisplay">—</span>
+                </div>
             </div>
+
+            <!-- GALERIA -->
+            <h2 style="font-weight:500; font-size:1.2rem; color:#0f172a;">📸 Última Captura</h2>
+            <p style="color:#64748b; font-size:0.85rem; margin-bottom:12px;">Imagem mais recente do monitoramento</p>
 
             <div class="galeria" id="galeriaContainer">
                 <div class="sem-imagem">Nenhuma imagem disponível.</div>
-            </div>
-
-            <!-- CALCULADORA -->
-            <div class="calculadora">
-                <h4>🧮 Calculadora simples</h4>
-                <div class="calc-linha">
-                    <input type="number" id="valorA" value="0" step="any">
-                    <span class="operador" id="operadorSinal">+</span>
-                    <input type="number" id="valorB" value="0" step="any">
-                    <button onclick="calcular('+')">➕ Somar</button>
-                    <button onclick="calcular('-')" style="background:#64748b; box-shadow:0 4px 10px rgba(100,116,139,0.2);">➖ Subtrair</button>
-                </div>
-                <div class="calc-resultado">
-                    Resultado: <span id="resultadoCalc">0</span>
-                </div>
             </div>
 
         </div>
     </div>
 
     <script>
-        // -------- CONFIGURAÇÕES --------
         const SENHA_CORRETA = "Dellplay321#";
         const URL_FIREBASE = "https://bacbo-17c22-default-rtdb.asia-southeast1.firebasedatabase.app/";
-        let filtroAtual = 'todas';
+        let valorInicial = null;
 
         // -------- SENHA --------
         function verificarSenha() {
@@ -406,8 +467,13 @@
             if (input.value === SENHA_CORRETA) {
                 document.getElementById('senhaOverlay').style.display = 'none';
                 document.getElementById('conteudoPrincipal').style.display = 'block';
-                carregarGaleria();
-                setInterval(carregarGaleria, 5000);
+                carregarValorInicial();
+                carregarUltimaImagem();
+                verificarStatus();
+                setInterval(() => {
+                    carregarUltimaImagem();
+                    verificarStatus();
+                }, 3000);
             } else {
                 erro.textContent = 'Senha incorreta. Tente novamente.';
                 input.value = '';
@@ -418,6 +484,32 @@
         document.getElementById('senhaInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') verificarSenha();
         });
+
+        // -------- STATUS --------
+        async function verificarStatus() {
+            try {
+                const res = await fetch(URL_FIREBASE + "status.json");
+                const data = await res.json();
+                const online = data && data.online === true;
+                atualizarStatusUI(online);
+            } catch (e) {
+                atualizarStatusUI(false);
+            }
+        }
+
+        function atualizarStatusUI(online) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            if (online) {
+                dot.className = 'status-dot online';
+                text.className = 'status-text online';
+                text.textContent = 'Online';
+            } else {
+                dot.className = 'status-dot offline';
+                text.className = 'status-text offline';
+                text.textContent = 'Offline';
+            }
+        }
 
         // -------- DESLIGAR --------
         async function enviarComandoDesligar() {
@@ -434,135 +526,112 @@
             }
         }
 
-        // -------- FILTROS --------
-        function aplicarFiltro(filtro, botao) {
-            filtroAtual = filtro;
-            document.querySelectorAll('.filtros button').forEach(btn => btn.classList.remove('ativo'));
-            if (botao) botao.classList.add('ativo');
-            carregarGaleria();
+        // -------- VALOR INICIAL --------
+        function definirValorInicial() {
+            const input = document.getElementById('valorInicialInput');
+            const valor = parseFloat(input.value);
+            
+            if (isNaN(valor)) {
+                alert("Por favor, digite um número válido.");
+                return;
+            }
+
+            valorInicial = valor;
+            
+            // Salva no localStorage para persistir
+            localStorage.setItem('valorInicial', JSON.stringify(valorInicial));
+            
+            // Atualiza a interface
+            atualizarDisplayValor();
+            
+            // Mostra feedback
+            const display = document.getElementById('valorAtualDisplay');
+            display.classList.add('destaque');
+            setTimeout(() => display.classList.remove('destaque'), 800);
+            
+            input.value = '';
         }
 
-        // -------- CARREGAR GALERIA (com filtro) --------
-        async function carregarGaleria() {
+        function carregarValorInicial() {
+            const salvo = localStorage.getItem('valorInicial');
+            if (salvo) {
+                valorInicial = JSON.parse(salvo);
+                atualizarDisplayValor();
+            }
+        }
+
+        function atualizarDisplayValor() {
+            const display = document.getElementById('valorAtualDisplay');
+            if (valorInicial !== null && valorInicial !== undefined) {
+                display.textContent = valorInicial;
+            } else {
+                display.textContent = '—';
+            }
+        }
+
+        // -------- CARREGAR ÚLTIMA IMAGEM --------
+        async function carregarUltimaImagem() {
             const container = document.getElementById('galeriaContainer');
             try {
-                const res = await fetch(URL_FIREBASE + "historico.json");
+                const res = await fetch(URL_FIREBASE + "historico.json?orderBy=\"timestamp\"&limitToLast=1");
                 const dados = await res.json();
+
                 if (!dados) {
                     container.innerHTML = `<div class="sem-imagem">Nenhuma imagem disponível.</div>`;
                     return;
                 }
 
-                // Converte para array
-                let lista = Object.keys(dados).map(key => ({
-                    id: key,
-                    ...dados[key]
-                }));
-
-                // Filtra por data se necessário
-                lista = filtrarPorData(lista, filtroAtual);
-
-                if (lista.length === 0) {
-                    container.innerHTML = `<div class="sem-imagem">Nenhuma imagem neste período.</div>`;
+                const keys = Object.keys(dados);
+                if (keys.length === 0) {
+                    container.innerHTML = `<div class="sem-imagem">Nenhuma imagem disponível.</div>`;
                     return;
                 }
 
-                // Ordena por timestamp (mais recente primeiro)
-                lista.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                const ultimaImagem = dados[keys[0]];
+                if (!ultimaImagem || !ultimaImagem.imagem) {
+                    container.innerHTML = `<div class="sem-imagem">Nenhuma imagem disponível.</div>`;
+                    return;
+                }
 
-                // Pega a primeira (mais recente) e a última (mais antiga) da lista filtrada
-                const maisRecente = lista[0];
-                const maisAntiga = lista[lista.length - 1];
+                const timestamp = ultimaImagem.timestamp || 'sem data';
+                let isRecente = false;
+                if (ultimaImagem.timestamp) {
+                    const partes = ultimaImagem.timestamp.match(/(\d{2})\/(\d{2})\/(\d{4}),\s*(\d{2}):(\d{2}):(\d{2})/);
+                    if (partes) {
+                        const dataUltima = new Date(
+                            parseInt(partes[3]), parseInt(partes[2]) - 1, parseInt(partes[1]),
+                            parseInt(partes[4]), parseInt(partes[5]), parseInt(partes[6])
+                        );
+                        const diff = (new Date() - dataUltima) / 1000 / 60;
+                        if (diff < 5) isRecente = true;
+                    }
+                }
 
-                let html = '';
-
-                function montarCard(item, label, cor) {
-                    if (!item || !item.imagem) return '';
-                    return `
-                        <div class="card-imagem">
-                            <div class="legenda">
-                                <span style="background:${cor || '#e9edf2'};">${label}</span>
-                                <span>🕒 ${item.timestamp || 'sem data'}</span>
-                            </div>
-                            <img src="${item.imagem}" alt="captura" loading="lazy">
+                const html = `
+                    <div class="card-imagem">
+                        <div class="legenda">
+                            <span style="background:${isRecente ? '#d1fae5' : '#dbeafe'};">
+                                ${isRecente ? '🟢 Recente' : '📌 Última captura'}
+                            </span>
+                            <span>🕒 ${timestamp}</span>
                         </div>
-                    `;
-                }
-
-                if (lista.length === 1) {
-                    html = montarCard(maisRecente, '📌 Única imagem', '#dbeafe');
-                } else {
-                    html = montarCard(maisRecente, '🆕 Mais recente', '#d1fae5');
-                    html += montarCard(maisAntiga, '⏳ Mais antiga', '#fef3c7');
-                }
-
+                        <img src="${ultimaImagem.imagem}" alt="Última captura" loading="lazy">
+                    </div>
+                `;
                 container.innerHTML = html;
-
             } catch (e) {
-                container.innerHTML = `<div class="sem-imagem">Erro ao carregar imagens.</div>`;
+                container.innerHTML = `<div class="sem-imagem">Erro ao carregar imagem.</div>`;
             }
         }
 
-        // -------- FILTRAR POR DATA --------
-        function filtrarPorData(lista, filtro) {
-            if (filtro === 'todas') return lista;
-
-            const agora = new Date();
-            let limite = new Date();
-
-            switch(filtro) {
-                case '24h':
-                    limite.setHours(agora.getHours() - 24);
-                    break;
-                case 'semana':
-                    limite.setDate(agora.getDate() - 7);
-                    break;
-                case 'mes':
-                    limite.setMonth(agora.getMonth() - 1);
-                    break;
-                default:
-                    return lista;
-            }
-
-            return lista.filter(item => {
-                if (!item.timestamp) return false;
-                // Tenta parsear o timestamp (formato: "DD/MM/YYYY, HH:MM:SS")
-                const partes = item.timestamp.match(/(\d{2})\/(\d{2})\/(\d{4}),\s*(\d{2}):(\d{2}):(\d{2})/);
-                if (!partes) return false;
-                const dataItem = new Date(
-                    parseInt(partes[3]),  // ano
-                    parseInt(partes[2]) - 1, // mês (0-index)
-                    parseInt(partes[1]),  // dia
-                    parseInt(partes[4]),  // hora
-                    parseInt(partes[5]),  // minuto
-                    parseInt(partes[6])   // segundo
-                );
-                return dataItem >= limite;
-            });
-        }
-
-        // -------- CALCULADORA --------
-        function calcular(operacao) {
-            const a = parseFloat(document.getElementById('valorA').value) || 0;
-            const b = parseFloat(document.getElementById('valorB').value) || 0;
-            let resultado = 0;
-            let sinal = '+';
-
-            if (operacao === '+') {
-                resultado = a + b;
-                sinal = '+';
-            } else if (operacao === '-') {
-                resultado = a - b;
-                sinal = '−';
-            }
-
-            document.getElementById('operadorSinal').textContent = sinal;
-            document.getElementById('resultadoCalc').textContent = resultado;
-        }
-
-        // Inicializa
+        // -------- Inicializa --------
         document.addEventListener('DOMContentLoaded', () => {
-            calcular('+');
+            carregarValorInicial();
+        });
+
+        // Permite definir valor com Enter
+        document.getElementById('valorInicialInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') definirValorInicial();
         });
     </script>
 
