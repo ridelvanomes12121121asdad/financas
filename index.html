@@ -16,7 +16,6 @@
     --novo: #1b7f4b;
     --teste: #b86e00;
     --of: #b3382c;
-    --fora: #7a45b5;
     --show: #1f5fbf;
   }
   @media (prefers-color-scheme: dark) {
@@ -30,7 +29,7 @@
       --on: #06141c;
     }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
     background: var(--bg);
@@ -42,6 +41,22 @@
   main { max-width: 560px; margin: 0 auto; padding: 16px; }
   h1 { font-size: 26px; margin: 4px 0 4px; }
   .sub { color: var(--mut); margin: 0 0 14px; }
+
+  .data-destaque {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--brand);
+    margin: 0 0 16px;
+    letter-spacing: 0.01em;
+  }
+  .data-destaque small {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--mut);
+    margin-top: 2px;
+  }
+
   .stack { display: grid; gap: 12px; }
 
   .big {
@@ -54,6 +69,9 @@
     font-size: 26px;
     font-weight: 700;
     box-shadow: inset 0 0 0 2px var(--line);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
   }
   .big:active { transform: scale(0.97); }
   .big small { display: block; font-size: 15px; font-weight: 500; opacity: 0.85; }
@@ -64,7 +82,6 @@
   .novo { background: var(--novo); }
   .teste { background: var(--teste); }
   .of { background: var(--of); }
-  .fora { background: var(--fora); }
   .show { background: var(--show); }
   .t.off { opacity: 0.35; }
 
@@ -90,6 +107,15 @@
     background: var(--card);
     color: var(--ink);
   }
+  input.placa { letter-spacing: 0.2em; text-align: center; text-transform: uppercase; }
+  input.carro {
+    font-size: 22px;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+    font-weight: 600;
+    padding: 16px 14px;
+  }
   .save {
     width: 100%;
     margin-top: 14px;
@@ -102,6 +128,7 @@
     font-size: 22px;
     font-weight: 700;
   }
+  .save:disabled { opacity: 0.5; }
 
   .sec { background: var(--card); border-radius: 12px; padding: 4px 14px; margin-top: 18px; }
   .sec h3 { margin: 10px 0 0; font-size: 19px; }
@@ -115,15 +142,7 @@
   }
   .row:last-child { border-bottom: 0; }
   .row small { display: block; color: var(--mut); }
-  .pill {
-    display: inline-block;
-    padding: 1px 9px;
-    border-radius: 99px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #fff;
-    margin-left: 6px;
-  }
+
   .act { border: 0; background: none; font: inherit; font-weight: 700; padding: 8px 6px; }
   .ed { color: var(--brand); }
   .del { color: var(--of); }
@@ -138,6 +157,65 @@
   }
   .err { border-color: var(--of); color: var(--of); }
 
+  /* Campo do carro com sugestões */
+  .campo { position: relative; }
+  .sugestoes {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 15;
+    background: var(--card); border: 2px solid var(--line); border-radius: 12px;
+    max-height: 260px; overflow-y: auto; box-shadow: 0 16px 40px rgba(0,0,0,.22);
+    padding: 6px;
+  }
+  .sugestoes[hidden] { display: none; }
+  .sugestoes button {
+    width: 100%; text-align: left; border: 0; background: transparent; color: var(--ink);
+    padding: 12px 14px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 19px;
+    font-weight: 600; display: block;
+  }
+  .sugestoes button:hover, .sugestoes button.sel { background: var(--line); }
+  .sugestoes button b { color: var(--brand); }
+  .sugestoes .vazio { padding: 12px 14px; color: var(--mut); font-size: 15px; }
+
+  /* Painel flutuante "espiada" dos carros do dia */
+  #espiada {
+    position: fixed;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0));
+    transform: translateX(-50%) translateY(20px);
+    width: min(92vw, 520px);
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--card);
+    color: var(--ink);
+    border: 2px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s, transform .15s;
+    z-index: 60;
+  }
+  #espiada.on {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  #espiada .titulo {
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  #espiada .item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 17px;
+  }
+  #espiada .item:last-child { border-bottom: 0; }
+  #espiada .item .hora { color: var(--mut); font-size: 15px; }
+  #espiada .vazio { color: var(--mut); padding: 8px 0; }
+
   #toast {
     position: fixed;
     left: 50%;
@@ -151,12 +229,16 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
+    z-index: 70;
+    max-width: 90vw;
+    text-align: center;
   }
   #toast.show2 { opacity: 1; }
 </style>
 </head>
 <body>
 <main><div id="v"></div></main>
+<div id="espiada" hidden></div>
 <div id="toast"></div>
 
 <script>
@@ -167,69 +249,84 @@
     novo: "Carro novo",
     of: "Oficina",
     teste: "Test drive",
-    show: "Showroom",
-    fora: "Por fora"
+    show: "Showroom"
   };
 
+  const HORA_VIRADA = 20; // após 20:00, o dia operacional já é o seguinte
+
+  const MODELOS = [
+    "Dolphin Mini", "Dolphin", "Dolphin Surf", "Dolphin SE", "Dolphin Plus", "Dolphin GS",
+    "Dolphin G DM-i", "Song Pro", "Song Plus", "Song Ultra", "Seal", "Seal U", "Seal U DM-i",
+    "Seal 6 DM-i", "Seal 6 DM-i Touring", "Sealion 5 DM-i", "Sealion 7", "Sealion 08",
+    "Atto 2", "Atto 2 DM-i", "Atto 3", "Atto 3 EVO", "Atto 8", "Yuan Plus", "Yuan Pro",
+    "Yuan", "Han", "Han EV", "Han DM-i", "Han L", "King", "Shark", "Tang", "Tan", "Qin L",
+    "Song L", "Song MAX DM-i", "Song Ultra DM-i", "Song Ultra EV", "Song Pro Flex",
+    "Dolphin G DM-i", "Ocean-V Concept", "Xia DM-i", "Datang EV", "Dahan EV"
+  ];
+
   // ---------- Estado ----------
-  let dia = "";             // dia carregado (AAAA-MM-DD)
-  let lista = [];           // carros registrados hoje
-  let idas = [];            // idas ao showroom registradas hoje
-  let pessoa = null;        // colaborador selecionado
-  let naIda = false;        // true quando está na tela "Idas no Showroom"
-  let edit = null;          // registro sendo alterado
-  let tipo = null;          // tipo escolhido num novo registro
-  let erro = "";            // erro ao carregar/salvar carros
-  let erroIda = "";         // erro ao carregar/salvar idas ao showroom
+  let dia = "";
+  let lista = [];
+  let idas = [];
+  let pessoa = null;
+  let naIda = false;
+  let edit = null;
+  let tipo = null;
+  let erro = "";
+  let erroIda = "";
   let carregando = true;
   let ocupado = false;
 
-  // ---------- Utilidades ----------
-  const $ = (seletor) => document.querySelector(seletor);
+  const $ = (s) => document.querySelector(s);
 
-  function hoje() {
-    const d = new Date();
-    const mes = String(d.getMonth() + 1).padStart(2, "0");
-    const diaDoMes = String(d.getDate()).padStart(2, "0");
-    return d.getFullYear() + "-" + mes + "-" + diaDoMes;
+  // ---------- Datas ----------
+  function diaOperacional() {
+    const agora = new Date();
+    if (agora.getHours() >= HORA_VIRADA) agora.setDate(agora.getDate() + 1);
+    const mes = String(agora.getMonth() + 1).padStart(2, "0");
+    const d = String(agora.getDate()).padStart(2, "0");
+    return agora.getFullYear() + "-" + mes + "-" + d;
+  }
+  function dataOperacional() {
+    const agora = new Date();
+    if (agora.getHours() >= HORA_VIRADA) agora.setDate(agora.getDate() + 1);
+    return agora;
   }
 
   function esc(texto) {
     return String(texto).replace(/[&<>"]/g, (c) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;"
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
     }[c]));
   }
-
   function hora(ts) {
     return new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   }
-
   function toast(mensagem) {
     const t = $("#toast");
     t.textContent = mensagem;
     t.classList.add("show2");
-    setTimeout(() => t.classList.remove("show2"), 1800);
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => t.classList.remove("show2"), 1800);
   }
-
-  function pill(k) {
-    return `<span class="pill ${k}">${TIPOS[k]}</span>`;
-  }
-
   function avisoErro(mensagem) {
     if (!mensagem) return "";
     return `<div class="msg err">${esc(mensagem)} <button class="act ed" id="tentar">Tentar de novo</button></div>`;
   }
-
   function paraLista(objeto) {
     return Object.entries(objeto || {})
       .map(([id, registro]) => ({ id, ...registro }))
       .sort((a, b) => a.ts - b.ts);
   }
+  function normalizar(s) {
+    return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  }
+  function textoDataDestaque() {
+    return dataOperacional().toLocaleDateString("pt-BR", {
+      weekday: "long", day: "numeric", month: "long"
+    });
+  }
 
-  // ---------- Banco de dados (Firebase Realtime Database) ----------
+  // ---------- Banco ----------
   async function api(metodo, caminho, corpo) {
     let resposta;
     try {
@@ -244,64 +341,75 @@
     if (resposta.status === 401 || resposta.status === 403) {
       throw new Error("O banco recusou o acesso. Ajuste as regras do Firebase.");
     }
-    if (!resposta.ok) {
-      throw new Error("Erro do banco de dados (" + resposta.status + ").");
-    }
+    if (!resposta.ok) throw new Error("Erro do banco de dados (" + resposta.status + ").");
     return resposta.json();
   }
 
   async function carregar() {
-    dia = hoje();
+    dia = diaOperacional();
     carregando = true;
     erro = "";
     erroIda = "";
     render();
-
-    try {
-      lista = paraLista(await api("GET", "lavagens/" + dia));
-    } catch (e) {
-      erro = e.message;
-      lista = [];
-    }
-
-    try {
-      idas = paraLista(await api("GET", "showroom/" + dia));
-    } catch (e) {
-      erroIda = e.message;
-      idas = [];
-    }
-
+    try { lista = paraLista(await api("GET", "lavagens/" + dia)); }
+    catch (e) { erro = e.message; lista = []; }
+    try { idas = paraLista(await api("GET", "showroom/" + dia)); }
+    catch (e) { erroIda = e.message; idas = []; }
     carregando = false;
     render();
   }
 
-  // ---------- Idas no Showroom ----------
+  // ---------- Showroom ----------
   async function registrarIda(nome) {
     if (ocupado) return;
     ocupado = true;
     try {
-      dia = hoje();
+      dia = diaOperacional();
       const agora = Date.now();
       await api("POST", "showroom/" + dia, { nome: nome, ts: agora });
       toast(nome + " registrado às " + hora(agora));
       await carregar();
-    } catch (e) {
-      erroIda = e.message;
-      render();
-    }
+    } catch (e) { erroIda = e.message; render(); }
     ocupado = false;
   }
-
   async function excluirIda(id) {
     if (!confirm("Excluir esta ida ao showroom?")) return;
     try {
       await api("DELETE", "showroom/" + dia + "/" + id);
       toast("Excluído");
       await carregar();
-    } catch (e) {
-      erroIda = e.message;
-      render();
-    }
+    } catch (e) { erroIda = e.message; render(); }
+  }
+
+  // ---------- Painel "espiada" (segurar no botão) ----------
+  const espiada = $("#espiada");
+  let espiadaAberta = false;
+
+  function abrirEspiada(nome) {
+    const meus = lista.filter((r) => r.nome === nome).slice().reverse();
+    const linhas = meus.length
+      ? meus.map((r) => `
+          <div class="item">
+            <div>
+              <b>${esc(r.placa)}</b>
+              ${r.carro ? `<small style="display:block;color:var(--mut);font-size:14px">${esc(r.carro)}</small>` : ""}
+            </div>
+            <span class="hora">${TIPOS[r.tipo] || r.tipo} · ${hora(r.ts)}</span>
+          </div>`).join("")
+      : `<div class="vazio">Nenhum carro registrado hoje.</div>`;
+
+    espiada.innerHTML = `
+      <div class="titulo" style="color:${EQUIPE[nome]}">${esc(nome)} · ${meus.length} carro${meus.length === 1 ? "" : "s"}</div>
+      ${linhas}`;
+    espiada.hidden = false;
+    requestAnimationFrame(() => espiada.classList.add("on"));
+    espiadaAberta = true;
+  }
+
+  function fecharEspiada() {
+    espiada.classList.remove("on");
+    espiadaAberta = false;
+    setTimeout(() => { if (!espiadaAberta) espiada.hidden = true; }, 180);
   }
 
   // ---------- Telas ----------
@@ -324,15 +432,9 @@
       </button>`;
     }).join("");
 
-    const dataTexto = new Date().toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long"
-    });
-
     v.innerHTML = `
       <h1>Controle da Lavagem</h1>
-      <p class="sub">${dataTexto}</p>
+      <p class="data-destaque">${textoDataDestaque()}<small>Turno atual</small></p>
       ${avisoErro(erro)}
       <div class="stack">
         ${botoesNomes}
@@ -341,68 +443,61 @@
         </button>
       </div>`;
 
+    // Cada botão de nome: toque curto = abrir colaborador; toque longo = espiada
     v.querySelectorAll("[data-nome]").forEach((b) => {
-      b.onclick = () => { pessoa = b.dataset.nome; render(); };
+      const nome = b.dataset.nome;
+      let timerLongo = null;
+      let segurou = false;
+
+      const iniciar = (e) => {
+        segurou = false;
+        b.classList.add("segurando");
+        timerLongo = setTimeout(() => {
+          segurou = true;
+          abrirEspiada(nome);
+        }, 350); // segurar 350ms já abre a espiada
+      };
+      const cancelar = () => {
+        clearTimeout(timerLongo);
+        b.classList.remove("segurando");
+        fecharEspiada();
+      };
+
+      b.addEventListener("pointerdown", iniciar);
+      b.addEventListener("pointerup", (e) => {
+        clearTimeout(timerLongo);
+        b.classList.remove("segurando");
+        fecharEspiada();
+        if (!segurou) {
+          pessoa = nome;
+          render();
+        }
+      });
+      b.addEventListener("pointerleave", cancelar);
+      b.addEventListener("pointercancel", cancelar);
+      b.addEventListener("contextmenu", (e) => e.preventDefault());
     });
+
     $("#botaoIda").onclick = () => { naIda = true; render(); };
   }
 
   function renderColaborador() {
     const v = $("#v");
-    const minhas = lista.filter((r) => r.nome === pessoa).slice().reverse();
-
     const botoesTipos = Object.keys(TIPOS).map((k) =>
       `<button class="big t ${k}" data-tipo="${k}">${TIPOS[k]}</button>`
     ).join("");
 
-    const linhasHistorico = minhas.length
-      ? minhas.map((r) => `
-          <div class="row">
-            <div><b>${esc(r.placa)}</b>${pill(r.tipo)}<small>${hora(r.ts)}</small></div>
-            <div>
-              <button class="act ed" data-editar="${r.id}">Alterar</button>
-              <button class="act del" data-excluir="${r.id}">Excluir</button>
-            </div>
-          </div>`).join("")
-      : `<div class="row" style="color:var(--mut)">Nenhum carro hoje</div>`;
-
     v.innerHTML = `
       <button class="back" id="voltar">‹ Voltar</button>
       <h1 style="color:${EQUIPE[pessoa]}">${esc(pessoa)}</h1>
-      <p class="sub">Toque para registrar um carro</p>
+      <p class="data-destaque">${textoDataDestaque()}<small>Toque para registrar um carro</small></p>
       ${avisoErro(erro)}
-      <div class="stack">${botoesTipos}</div>
-      <div class="sec">
-        <h3>Hoje (${minhas.length})</h3>
-        ${linhasHistorico}
-      </div>`;
+      <div class="stack">${botoesTipos}</div>`;
 
     $("#voltar").onclick = () => { pessoa = null; carregar(); };
 
     v.querySelectorAll("[data-tipo]").forEach((b) => {
       b.onclick = () => { tipo = b.dataset.tipo; render(); };
-    });
-
-    v.querySelectorAll("[data-editar]").forEach((b) => {
-      b.onclick = () => {
-        const r = lista.find((x) => x.id === b.dataset.editar);
-        edit = { id: r.id, k: r.tipo, placa: r.placa };
-        render();
-      };
-    });
-
-    v.querySelectorAll("[data-excluir]").forEach((b) => {
-      b.onclick = async () => {
-        if (!confirm("Excluir este registro?")) return;
-        try {
-          await api("DELETE", "lavagens/" + dia + "/" + b.dataset.excluir);
-          toast("Excluído");
-          await carregar();
-        } catch (e) {
-          erro = e.message;
-          render();
-        }
-      };
     });
   }
 
@@ -414,21 +509,35 @@
       ? `<div class="stack">${Object.keys(TIPOS).map((k) =>
           `<button class="big t ${k}${k === tipoAtual ? "" : " off"}" data-tipo="${k}">${TIPOS[k]}</button>`
         ).join("")}</div><br>`
-      : `<p class="sub"><b>${TIPOS[tipoAtual]}</b> — últimos 4 dígitos da placa ou chassi</p>`;
+      : `<p class="sub"><b>${TIPOS[tipoAtual]}</b></p>`;
 
     v.innerHTML = `
       <button class="back" id="voltar">‹ Voltar</button>
       <h1 style="color:${EQUIPE[pessoa]}">${esc(pessoa)}</h1>
-      <p class="sub">${edit ? "Alterar registro" : "Novo registro"}</p>
+      <p class="data-destaque">${textoDataDestaque()}<small>${edit ? "Alterar registro" : "Novo registro"}</small></p>
       ${escolhaDeTipo}
-      <input id="placa" maxlength="4" autocomplete="off" autocapitalize="characters">
+
+      <label class="sub" style="display:block;margin-top:6px">Modelo do carro</label>
+      <div class="campo">
+        <input id="carro" class="carro" type="text" placeholder="Digite ou escolha o modelo…" autocomplete="off" autocapitalize="words" spellcheck="false">
+        <div class="sugestoes" id="sugestoes" hidden></div>
+      </div>
+
+      <label class="sub" style="display:block;margin-top:12px">Últimos 4 dígitos da placa ou chassi</label>
+      <input id="placa" class="placa" maxlength="4" autocomplete="off" autocapitalize="characters">
+
       <button class="save" id="salvar">Salvar</button>`;
 
-    const campo = $("#placa");
-    campo.value = edit ? edit.placa : "";
-    campo.focus();
+    const campoCarro = $("#carro");
+    const campoPlaca = $("#placa");
+    const caixaSug = $("#sugestoes");
+
+    campoCarro.value = edit ? (edit.carro || "") : "";
+    campoPlaca.value = edit ? edit.placa : "";
+    campoCarro.focus();
 
     let tipoEscolhido = tipoAtual;
+
     v.querySelectorAll("[data-tipo]").forEach((b) => {
       b.onclick = () => {
         tipoEscolhido = b.dataset.tipo;
@@ -440,24 +549,96 @@
 
     $("#voltar").onclick = () => { edit = null; tipo = null; render(); };
 
-    async function salvar() {
-      const placa = campo.value.trim().toUpperCase();
-      if (placa.length < 4) {
-        toast("Digite os 4 caracteres");
+    // Sugestões
+    let indiceSel = -1;
+    function filtrar(termo) {
+      const t = normalizar(termo);
+      if (!t) return MODELOS.slice();
+      const comeca = MODELOS.filter((m) => normalizar(m).startsWith(t));
+      const contem = MODELOS.filter((m) => !normalizar(m).startsWith(t) && normalizar(m).includes(t));
+      return comeca.concat(contem);
+    }
+    function destacar(modelo, termo) {
+      const t = normalizar(termo);
+      if (!t) return modelo;
+      const idx = normalizar(modelo).indexOf(t);
+      if (idx === -1) return modelo;
+      return modelo.slice(0, idx) + "<b>" + modelo.slice(idx, idx + termo.length) + "</b>" + modelo.slice(idx + termo.length);
+    }
+    function abrir() {
+      const termo = campoCarro.value;
+      const lm = filtrar(termo);
+      indiceSel = -1;
+      if (!lm.length) {
+        caixaSug.innerHTML = `<div class="vazio">Nenhum modelo encontrado. Você pode digitar mesmo assim.</div>`;
+        caixaSug.hidden = false;
         return;
       }
+      caixaSug.innerHTML = lm.map((m, i) =>
+        `<button type="button" data-modelo="${m}" data-i="${i}">${destacar(m, termo)}</button>`
+      ).join("");
+      caixaSug.hidden = false;
+      caixaSug.querySelectorAll("button").forEach((b) => {
+        b.onmousedown = (e) => { e.preventDefault(); escolher(b.dataset.modelo); };
+      });
+    }
+    function fechar() { caixaSug.hidden = true; indiceSel = -1; }
+    function escolher(modelo) {
+      campoCarro.value = modelo;
+      fechar();
+      campoPlaca.focus();
+    }
+    campoCarro.addEventListener("input", abrir);
+    campoCarro.addEventListener("focus", abrir);
+    campoCarro.addEventListener("blur", () => setTimeout(fechar, 180));
+    campoCarro.addEventListener("keydown", (e) => {
+      const botoes = caixaSug.querySelectorAll("button");
+      if (!botoes.length || caixaSug.hidden) {
+        if (e.key === "Enter") { e.preventDefault(); campoPlaca.focus(); }
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        indiceSel = Math.min(indiceSel + 1, botoes.length - 1);
+        botoes.forEach((b, i) => b.classList.toggle("sel", i === indiceSel));
+        botoes[indiceSel].scrollIntoView({ block: "nearest" });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        indiceSel = Math.max(indiceSel - 1, 0);
+        botoes.forEach((b, i) => b.classList.toggle("sel", i === indiceSel));
+        botoes[indiceSel].scrollIntoView({ block: "nearest" });
+      } else if (e.key === "Enter") {
+        if (indiceSel >= 0) { e.preventDefault(); escolher(botoes[indiceSel].dataset.modelo); }
+        else { e.preventDefault(); fechar(); campoPlaca.focus(); }
+      } else if (e.key === "Escape") {
+        fechar();
+      }
+    });
+
+    campoPlaca.addEventListener("input", () => {
+      campoPlaca.value = campoPlaca.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 4);
+    });
+
+    async function salvar() {
+      const carro = campoCarro.value.trim();
+      const placa = campoPlaca.value.trim().toUpperCase();
+      if (!carro) { toast("Escolha o modelo do carro"); campoCarro.focus(); return; }
+      if (placa.length < 4) { toast("Digite os 4 caracteres"); campoPlaca.focus(); return; }
+
       $("#salvar").disabled = true;
       try {
         if (edit) {
-          await api("PATCH", "lavagens/" + dia + "/" + edit.id, { tipo: tipoEscolhido, placa: placa });
+          await api("PATCH", "lavagens/" + dia + "/" + edit.id, { tipo: tipoEscolhido, carro: carro, placa: placa });
         } else {
-          dia = hoje();
-          await api("POST", "lavagens/" + dia, { nome: pessoa, tipo: tipoEscolhido, placa: placa, ts: Date.now() });
+          dia = diaOperacional();
+          await api("POST", "lavagens/" + dia, {
+            nome: pessoa, tipo: tipoEscolhido, carro: carro, placa: placa, ts: Date.now()
+          });
         }
         toast("Salvo");
         edit = null;
         tipo = null;
-        await carregar(); // continua na tela do colaborador
+        await carregar();
       } catch (e) {
         erro = e.message;
         edit = null;
@@ -465,14 +646,12 @@
         render();
       }
     }
-
     $("#salvar").onclick = salvar;
-    campo.onkeydown = (e) => { if (e.key === "Enter") salvar(); };
+    campoPlaca.onkeydown = (e) => { if (e.key === "Enter") salvar(); };
   }
 
   function renderIda() {
     const v = $("#v");
-
     const botoesNomes = Object.keys(EQUIPE).map((nome) => {
       const total = idas.filter((i) => i.nome === nome).length;
       return `<button class="big nome" style="background:${EQUIPE[nome]}" data-nome="${nome}">
@@ -495,7 +674,7 @@
     v.innerHTML = `
       <button class="back" id="voltar">‹ Voltar</button>
       <h1>Idas no Showroom</h1>
-      <p class="sub">Quem foi? Toque no nome para registrar agora.</p>
+      <p class="data-destaque">${textoDataDestaque()}<small>Quem foi? Toque no nome para registrar agora.</small></p>
       ${avisoErro(erroIda)}
       <div class="stack">${botoesNomes}</div>
       <div class="sec">
@@ -504,7 +683,6 @@
       </div>`;
 
     $("#voltar").onclick = () => { naIda = false; carregar(); };
-
     v.querySelectorAll("[data-nome]").forEach((b) => {
       b.onclick = () => registrarIda(b.dataset.nome);
     });
@@ -515,6 +693,15 @@
 
   // ---------- Início ----------
   carregar();
+
+  let diaAtualVisivel = diaOperacional();
+  setInterval(() => {
+    const novoDia = diaOperacional();
+    if (novoDia !== diaAtualVisivel) {
+      diaAtualVisivel = novoDia;
+      carregar();
+    }
+  }, 30000);
 </script>
 </body>
 </html>
