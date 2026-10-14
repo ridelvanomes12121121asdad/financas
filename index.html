@@ -17,6 +17,7 @@
     --teste: #b86e00;
     --of: #b3382c;
     --show: #1f5fbf;
+    --outros: #6b7280;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -113,6 +114,7 @@
   .teste { background: var(--teste); }
   .of { background: var(--of); }
   .show { background: var(--show); }
+  .outros { background: var(--outros); }
   .t.off { opacity: 0.35; }
 
   .back {
@@ -162,6 +164,18 @@
     text-transform: none;
     font-weight: 600;
     padding: 16px 14px;
+  }
+  input.busca {
+    font-size: 20px;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+    font-weight: 600;
+    padding: 14px 16px 14px 46px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%235d7280' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>");
+    background-repeat: no-repeat;
+    background-position: 14px center;
+    background-size: 22px;
   }
   .save {
     width: 100%;
@@ -316,6 +330,13 @@
     font-size: 15px;
   }
 
+  .busca-vazio {
+    text-align: center;
+    color: var(--mut);
+    padding: 24px 16px;
+    font-size: 16px;
+  }
+
   #toast {
     position: fixed;
     left: 50%;
@@ -348,13 +369,15 @@
     novo: "Carro novo",
     of: "Oficina",
     teste: "Test drive",
-    show: "Showroom"
+    show: "Showroom",
+    outros: "Outros"
   };
   const CORES_TIPO = {
     novo: "#1b7f4b",
     of: "#b3382c",
     teste: "#b86e00",
-    show: "#1f5fbf"
+    show: "#1f5fbf",
+    outros: "#6b7280"
   };
 
   const HORA_VIRADA = 20;
@@ -392,13 +415,13 @@
   let pessoa = null;
   // "inicio" | "colaborador" | "formulario" | "ida" | "historico"
   let etapa = "inicio";
-  // Registro sendo editado: { id, k, carro, placa, cor, nome }
   let edit = null;
   let tipo = null;
   let erro = "";
   let erroIda = "";
   let carregando = true;
   let ocupado = false;
+  let busca = ""; // termo de busca no histórico
 
   const $ = (s) => document.querySelector(s);
 
@@ -447,6 +470,10 @@
     return dataOperacional().toLocaleDateString("pt-BR", {
       weekday: "long", day: "numeric", month: "long"
     });
+  }
+  // Verifica se o nome digitado é exatamente um dos modelos pré-selecionados (BYD)
+  function ehModeloBYD(nome) {
+    return MODELOS.includes(nome);
   }
 
   // ---------- Banco ----------
@@ -563,7 +590,7 @@
     });
 
     $("#botaoIda").onclick = () => { etapa = "ida"; render(); };
-    $("#botaoHist").onclick = () => { etapa = "historico"; render(); };
+    $("#botaoHist").onclick = () => { busca = ""; etapa = "historico"; render(); };
   }
 
   function renderColaborador() {
@@ -666,7 +693,6 @@
     });
 
     $("#voltar").onclick = () => {
-      // Se estava editando a partir do histórico, volta para o histórico
       const voltarParaHistorico = edit && edit.origem === "historico";
       edit = null;
       tipo = null;
@@ -765,17 +791,23 @@
       if (!carro) { toast("Escolha o modelo do carro"); campoCarro.focus(); return; }
       if (placa.length < 4) { toast("Digite os 4 caracteres"); campoPlaca.focus(); return; }
 
+      // Se o carro digitado não for BYD, vira "Outros" automaticamente.
+      let tipoFinal = tipoEscolhido;
+      if (!ehModeloBYD(carro)) {
+        tipoFinal = "outros";
+      }
+
       $("#salvar").disabled = true;
       const veioDoHistorico = edit && edit.origem === "historico";
       try {
         if (edit) {
           await api("PATCH", "lavagens/" + dia + "/" + edit.id, {
-            tipo: tipoEscolhido, carro: carro, placa: placa, cor: corSelecionada
+            tipo: tipoFinal, carro: carro, placa: placa, cor: corSelecionada
           });
         } else {
           dia = diaOperacional();
           await api("POST", "lavagens/" + dia, {
-            nome: pessoa, tipo: tipoEscolhido, carro: carro, placa: placa, cor: corSelecionada, ts: Date.now()
+            nome: pessoa, tipo: tipoFinal, carro: carro, placa: placa, cor: corSelecionada, ts: Date.now()
           });
         }
         toast("Salvo");
@@ -841,49 +873,147 @@
   function renderHistorico() {
     const v = $("#v");
 
-    const blocos = Object.keys(EQUIPE).map((nome) => {
-      const meus = lista.filter((r) => r.nome === nome).slice().reverse();
-      const linhas = meus.length
-        ? meus.map((r) => {
-            const partesInfo = [];
-            if (r.carro) partesInfo.push(r.carro);
-            if (r.cor) partesInfo.push(r.cor);
-            const info = partesInfo.length ? partesInfo.join(" · ") : "—";
-            return `
-              <div class="carro-linha">
-                <span class="placa">${esc(r.placa)}</span>
-                <span class="info">
-                  <b>${esc(info)}</b>
-                  <small>${hora(r.ts)}</small>
-                </span>
-                <span class="tipo" style="background:${CORES_TIPO[r.tipo] || "#666"}">${TIPOS[r.tipo] || r.tipo}</span>
-                <span class="acoes">
-                  <button class="ed" data-editar="${r.id}">Alterar</button>
-                  <button class="del" data-excluir-carro="${r.id}">Excluir</button>
-                </span>
-              </div>`;
-          }).join("")
-        : `<div class="row" style="color:var(--mut)">Nenhum carro hoje</div>`;
+    // Filtro de busca
+    const termo = normalizar(busca);
+    const listaFiltrada = termo
+      ? lista.filter((r) => {
+          const alvo = [
+            r.placa || "",
+            r.carro || "",
+            r.cor || "",
+            r.nome || "",
+            TIPOS[r.tipo] || ""
+          ].join(" ");
+          return normalizar(alvo).includes(termo);
+        })
+      : lista;
 
-      return `
-        <div class="bloco-pessoa" style="--cor:${EQUIPE[nome]}">
-          <h3>${esc(nome)}<small>${meus.length} carro${meus.length === 1 ? "" : "s"}</small></h3>
-          ${linhas}
-        </div>`;
-    }).join("");
+    // Blocos por pessoa
+    let blocos = "";
+    if (termo && listaFiltrada.length === 0) {
+      blocos = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
+    } else {
+      blocos = Object.keys(EQUIPE).map((nome) => {
+        const meus = listaFiltrada.filter((r) => r.nome === nome).slice().reverse();
+        if (termo && meus.length === 0) return "";
+        const linhas = meus.length
+          ? meus.map((r) => {
+              const partesInfo = [];
+              if (r.carro) partesInfo.push(r.carro);
+              if (r.cor) partesInfo.push(r.cor);
+              const info = partesInfo.length ? partesInfo.join(" · ") : "—";
+              return `
+                <div class="carro-linha">
+                  <span class="placa">${esc(r.placa)}</span>
+                  <span class="info">
+                    <b>${esc(info)}</b>
+                    <small>${hora(r.ts)}</small>
+                  </span>
+                  <span class="tipo" style="background:${CORES_TIPO[r.tipo] || "#666"}">${TIPOS[r.tipo] || r.tipo}</span>
+                  <span class="acoes">
+                    <button class="ed" data-editar="${r.id}">Alterar</button>
+                    <button class="del" data-excluir-carro="${r.id}">Excluir</button>
+                  </span>
+                </div>`;
+            }).join("")
+          : `<div class="row" style="color:var(--mut)">Nenhum carro hoje</div>`;
+
+        return `
+          <div class="bloco-pessoa" style="--cor:${EQUIPE[nome]}">
+            <h3>${esc(nome)}<small>${meus.length} carro${meus.length === 1 ? "" : "s"}</small></h3>
+            ${linhas}
+          </div>`;
+      }).join("");
+      if (!blocos.trim()) {
+        blocos = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
+      }
+    }
 
     v.innerHTML = `
       <button class="back" id="voltar">‹ Voltar</button>
       <div class="topo-tela">
         <h1>Histórico de hoje</h1>
         <p class="data-destaque">${textoDataDestaque()}<small>${lista.length} carro${lista.length === 1 ? "" : "s"} lavado${lista.length === 1 ? "" : "s"}</small></p>
+        <input id="busca" class="busca" type="text" placeholder="Buscar por chassi, carro, cor…" value="${esc(busca)}" autocomplete="off" autocapitalize="characters" spellcheck="false">
       </div>
       ${avisoErro(erro)}
       ${blocos}`;
 
-    $("#voltar").onclick = () => { etapa = "inicio"; carregar(); };
+    $("#voltar").onclick = () => { busca = ""; etapa = "inicio"; carregar(); };
 
-    // Alterar: abre o formulário preenchido com esse registro
+    const campoBusca = $("#busca");
+    campoBusca.addEventListener("input", () => {
+      busca = campoBusca.value;
+      const listaAntiga = v.querySelectorAll(".bloco-pessoa, .busca-vazio");
+      listaAntiga.forEach((el) => el.remove());
+
+      const termo2 = normalizar(busca);
+      const filtrados = termo2
+        ? lista.filter((r) => {
+            const alvo = [r.placa || "", r.carro || "", r.cor || "", r.nome || "", TIPOS[r.tipo] || ""].join(" ");
+            return normalizar(alvo).includes(termo2);
+          })
+        : lista;
+
+      let html = "";
+      if (termo2 && filtrados.length === 0) {
+        html = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
+      } else {
+        html = Object.keys(EQUIPE).map((nome) => {
+          const meus = filtrados.filter((r) => r.nome === nome).slice().reverse();
+          if (termo2 && meus.length === 0) return "";
+          const linhas = meus.length
+            ? meus.map((r) => {
+                const partesInfo = [];
+                if (r.carro) partesInfo.push(r.carro);
+                if (r.cor) partesInfo.push(r.cor);
+                const info = partesInfo.length ? partesInfo.join(" · ") : "—";
+                return `
+                  <div class="carro-linha">
+                    <span class="placa">${esc(r.placa)}</span>
+                    <span class="info">
+                      <b>${esc(info)}</b>
+                      <small>${hora(r.ts)}</small>
+                    </span>
+                    <span class="tipo" style="background:${CORES_TIPO[r.tipo] || "#666"}">${TIPOS[r.tipo] || r.tipo}</span>
+                    <span class="acoes">
+                      <button class="ed" data-editar="${r.id}">Alterar</button>
+                      <button class="del" data-excluir-carro="${r.id}">Excluir</button>
+                    </span>
+                  </div>`;
+              }).join("")
+            : `<div class="row" style="color:var(--mut)">Nenhum carro hoje</div>`;
+          return `
+            <div class="bloco-pessoa" style="--cor:${EQUIPE[nome]}">
+              <h3>${esc(nome)}<small>${meus.length} carro${meus.length === 1 ? "" : "s"}</small></h3>
+              ${linhas}
+            </div>`;
+        }).join("");
+        if (!html.trim()) {
+          html = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
+        }
+      }
+
+      campoBusca.insertAdjacentHTML("afterend", html);
+      v.querySelectorAll("[data-editar]").forEach((b) => {
+        b.onclick = () => {
+          const r = lista.find((x) => x.id === b.dataset.editar);
+          if (!r) return;
+          pessoa = r.nome;
+          tipo = r.tipo;
+          edit = {
+            id: r.id, k: r.tipo, carro: r.carro || "",
+            placa: r.placa || "", cor: r.cor || "", origem: "historico"
+          };
+          etapa = "formulario";
+          render();
+        };
+      });
+      v.querySelectorAll("[data-excluir-carro]").forEach((b) => {
+        b.onclick = () => excluirCarro(b.dataset.excluirCarro);
+      });
+    });
+
     v.querySelectorAll("[data-editar]").forEach((b) => {
       b.onclick = () => {
         const r = lista.find((x) => x.id === b.dataset.editar);
@@ -891,21 +1021,16 @@
         pessoa = r.nome;
         tipo = r.tipo;
         edit = {
-          id: r.id,
-          k: r.tipo,
-          carro: r.carro || "",
-          placa: r.placa || "",
-          cor: r.cor || "",
-          origem: "historico"
+          id: r.id, k: r.tipo, carro: r.carro || "",
+          placa: r.placa || "", cor: r.cor || "", origem: "historico"
         };
         etapa = "formulario";
         render();
       };
     });
 
-    // Excluir
     v.querySelectorAll("[data-excluir-carro]").forEach((b) => {
-      b.onclick = () => excluirCarro(b.dataset.excluirCarro);
+      b.onclick = () => excluirCarro(b.dataset.excluir-carro);
     });
   }
 
