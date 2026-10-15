@@ -117,6 +117,29 @@
   .outros { background: var(--outros); }
   .t.off { opacity: 0.35; }
 
+  /* Faixa que mostra o tipo de veículo escolhido */
+  .tipo-atual {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-left: 10px solid var(--c, var(--brand));
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--c, var(--ink));
+    margin-bottom: 6px;
+  }
+  .tipo-atual .bolinha {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: var(--c, var(--brand));
+    flex: none;
+  }
+
   .back {
     background: none;
     border: 0;
@@ -133,13 +156,6 @@
     font-weight: 700;
     color: var(--ink);
     margin: 22px 0 8px;
-  }
-  .rotulo small {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--mut);
-    margin-top: 2px;
   }
 
   input {
@@ -191,6 +207,99 @@
     cursor: pointer;
   }
   .save:disabled { opacity: 0.5; }
+
+  .marcadores {
+    display: grid;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .marcadores label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .marcadores label .caixa {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    display: grid;
+    place-items: center;
+    flex: none;
+    transition: background .12s, border-color .12s;
+  }
+  .marcadores label .caixa::after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: transparent;
+    transition: background .12s;
+  }
+  .marcadores label.marcado {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 8%, var(--card));
+  }
+  .marcadores label.marcado .caixa {
+    border-color: var(--brand);
+    background: var(--brand);
+  }
+  .marcadores label.marcado .caixa::after {
+    background: var(--on);
+  }
+
+  .filtros-tipo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .filtros-tipo button {
+    border: 2px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 99px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filtros-tipo button .cor {
+    width: 10px; height: 10px; border-radius: 3px; flex: none;
+    background: var(--c, transparent);
+  }
+  .filtros-tipo button .cont {
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--soft, #e8eef2);
+    color: var(--mut);
+    padding: 1px 7px;
+    border-radius: 99px;
+    min-width: 22px;
+    text-align: center;
+  }
+  .filtros-tipo button.on {
+    border-color: var(--c, var(--brand));
+    background: color-mix(in srgb, var(--c, var(--brand)) 12%, var(--card));
+  }
+  .filtros-tipo button.on .cont {
+    background: var(--c, var(--brand));
+    color: #fff;
+  }
 
   .sec { background: var(--card); border-radius: 12px; padding: 4px 14px; margin-top: 18px; }
   .sec h3 { margin: 10px 0 0; font-size: 19px; }
@@ -315,6 +424,27 @@
     border-radius: 99px;
     white-space: nowrap;
   }
+  .carro-linha .marcas {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .carro-linha .marca {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: var(--soft);
+    color: var(--mut);
+  }
+  .carro-linha .marca.fora { background: #fef3c7; color: #92400e; }
+  .carro-linha .marca.subs { background: #fee2e2; color: #991b1b; }
+  @media (prefers-color-scheme: dark) {
+    .carro-linha .marca.fora { background: #4b2e07; color: #fcd34d; }
+    .carro-linha .marca.subs { background: #4c1d1d; color: #fca5a5; }
+  }
   .carro-linha .acoes {
     display: flex;
     gap: 4px;
@@ -364,7 +494,12 @@
 <script>
   // ---------- Configuração ----------
   const DB = "https://controle-de-lavagens-78b2e-default-rtdb.firebaseio.com";
-  const EQUIPE = { Felipe: "#0f766e", Marcos: "#be185d", Jonathan: "#4338ca" };
+  const EQUIPE = {
+    Felipe: "#0f766e",
+    Marcos: "#be185d",
+    Jonathan: "#4338ca",
+    Ridelvan: "#c2410c"
+  };
   const TIPOS = {
     novo: "Carro novo",
     of: "Oficina",
@@ -413,7 +548,6 @@
   let lista = [];
   let idas = [];
   let pessoa = null;
-  // "inicio" | "colaborador" | "formulario" | "ida" | "historico"
   let etapa = "inicio";
   let edit = null;
   let tipo = null;
@@ -421,7 +555,8 @@
   let erroIda = "";
   let carregando = true;
   let ocupado = false;
-  let busca = ""; // termo de busca no histórico
+  let busca = "";
+  let filtroTipo = "";
 
   const $ = (s) => document.querySelector(s);
 
@@ -471,9 +606,26 @@
       weekday: "long", day: "numeric", month: "long"
     });
   }
-  // Verifica se o nome digitado é exatamente um dos modelos pré-selecionados (BYD)
   function ehModeloBYD(nome) {
     return MODELOS.includes(nome);
+  }
+  function combina(r, termo) {
+    const campos = [
+      String(r.placa || ""),
+      String(r.carro || ""),
+      String(r.cor || ""),
+      String(r.nome || ""),
+      String(TIPOS[r.tipo] || r.tipo || "")
+    ];
+    return campos.some((c) => normalizar(c).includes(termo));
+  }
+  function aplicarFiltros() {
+    const termo = normalizar(busca);
+    return lista.filter((r) => {
+      if (filtroTipo && r.tipo !== filtroTipo) return false;
+      if (termo && !combina(r, termo)) return false;
+      return true;
+    });
   }
 
   // ---------- Banco ----------
@@ -533,6 +685,10 @@
 
   // ---------- Excluir carro (do histórico) ----------
   async function excluirCarro(id) {
+    if (!id) {
+      toast("Não foi possível identificar o registro.");
+      return;
+    }
     if (!confirm("Excluir este carro?")) return;
     try {
       await api("DELETE", "lavagens/" + dia + "/" + id);
@@ -590,7 +746,12 @@
     });
 
     $("#botaoIda").onclick = () => { etapa = "ida"; render(); };
-    $("#botaoHist").onclick = () => { busca = ""; etapa = "historico"; render(); };
+    $("#botaoHist").onclick = () => {
+      busca = "";
+      filtroTipo = "";
+      etapa = "historico";
+      render();
+    };
   }
 
   function renderColaborador() {
@@ -633,11 +794,12 @@
       return;
     }
 
-    const escolhaDeTipo = edit
-      ? `<div class="stack">${Object.keys(TIPOS).map((k) =>
-          `<button class="big t ${k}${k === tipoAtual ? "" : " off"}" data-tipo="${k}">${TIPOS[k]}</button>`
-        ).join("")}</div>`
-      : `<p class="subtitulo" style="margin:0 0 4px">Tipo: <b style="color:${CORES_TIPO[tipoAtual]}">${TIPOS[tipoAtual]}</b></p>`;
+    // Faixa que mostra o tipo escolhido (sem "Tipo:" antes)
+    const faixaTipo = `
+      <div class="tipo-atual" style="--c:${CORES_TIPO[tipoAtual]}">
+        <span class="bolinha"></span>
+        ${TIPOS[tipoAtual]}
+      </div>`;
 
     v.innerHTML = `
       <button class="back" id="voltar">‹ Voltar</button>
@@ -648,25 +810,21 @@
         </div>
         <p class="data-destaque">${textoDataDestaque()}<small>${edit ? "Alterar registro" : "Novo registro"}</small></p>
       </div>
-      ${escolhaDeTipo}
+      ${faixaTipo}
 
-      <label class="rotulo" for="carro">Modelo do carro
-        <small>Digite ou escolha na lista</small>
-      </label>
+      <label class="rotulo" for="carro">Modelo do carro</label>
       <div class="campo">
         <input id="carro" class="carro" type="text" placeholder="Digite ou escolha o modelo…" autocomplete="off" autocapitalize="words" spellcheck="false">
         <div class="sugestoes" id="sugestoes" hidden></div>
       </div>
 
-      <label class="rotulo" for="placa">Últimos 4 dígitos da placa ou chassi
-        <small>Letras e números</small>
-      </label>
+      <label class="rotulo" for="placa">Placa ou chassi</label>
       <input id="placa" class="placa" maxlength="4" autocomplete="off" autocapitalize="characters">
 
-      <label class="rotulo">Cor do veículo
-        <small>Toque numa cor</small>
-      </label>
+      <label class="rotulo">Cor do veículo</label>
       <div class="cores" id="cores"></div>
+
+      <div id="blocoMarcadores"></div>
 
       <button class="save" id="salvar">Salvar</button>`;
 
@@ -674,23 +832,46 @@
     const campoPlaca = $("#placa");
     const caixaSug = $("#sugestoes");
     const caixaCores = $("#cores");
+    const blocoMarcadores = $("#blocoMarcadores");
 
     let corSelecionada = edit ? (edit.cor || "") : "";
+    let foraListagem = edit ? !!edit.foraListagem : false;
+    let substituido = edit ? !!edit.substituido : false;
+
+    const tipoEscolhido = tipoAtual;
+
+    function renderMarcadores() {
+      if (tipoEscolhido !== "novo") {
+        blocoMarcadores.innerHTML = "";
+        return;
+      }
+      blocoMarcadores.innerHTML = `
+        <div class="marcadores" id="marcadoresBox">
+          <label data-chave="foraListagem" class="${foraListagem ? "marcado" : ""}">
+            <span class="caixa"></span>
+            Carro fora da listagem
+          </label>
+          <label data-chave="substituido" class="${substituido ? "marcado" : ""}">
+            <span class="caixa"></span>
+            Carro substituído
+          </label>
+        </div>`;
+
+      blocoMarcadores.querySelectorAll("label").forEach((b) => {
+        b.onclick = () => {
+          const chave = b.dataset.chave;
+          if (chave === "foraListagem") foraListagem = !foraListagem;
+          if (chave === "substituido") substituido = !substituido;
+          b.classList.toggle("marcado");
+        };
+      });
+    }
 
     campoCarro.value = edit ? (edit.carro || "") : "";
     campoPlaca.value = edit ? edit.placa : "";
     campoCarro.focus();
 
-    let tipoEscolhido = tipoAtual;
-
-    v.querySelectorAll("[data-tipo]").forEach((b) => {
-      b.onclick = () => {
-        tipoEscolhido = b.dataset.tipo;
-        v.querySelectorAll("[data-tipo]").forEach((x) =>
-          x.classList.toggle("off", x.dataset.tipo !== tipoEscolhido)
-        );
-      };
-    });
+    renderMarcadores();
 
     $("#voltar").onclick = () => {
       const voltarParaHistorico = edit && edit.origem === "historico";
@@ -791,23 +972,37 @@
       if (!carro) { toast("Escolha o modelo do carro"); campoCarro.focus(); return; }
       if (placa.length < 4) { toast("Digite os 4 caracteres"); campoPlaca.focus(); return; }
 
-      // Se o carro digitado não for BYD, vira "Outros" automaticamente.
       let tipoFinal = tipoEscolhido;
       if (!ehModeloBYD(carro)) {
         tipoFinal = "outros";
       }
+
+      const salvaForaListagem = tipoFinal === "novo" ? foraListagem : false;
+      const salvaSubstituido  = tipoFinal === "novo" ? substituido  : false;
 
       $("#salvar").disabled = true;
       const veioDoHistorico = edit && edit.origem === "historico";
       try {
         if (edit) {
           await api("PATCH", "lavagens/" + dia + "/" + edit.id, {
-            tipo: tipoFinal, carro: carro, placa: placa, cor: corSelecionada
+            tipo: tipoFinal,
+            carro: carro,
+            placa: placa,
+            cor: corSelecionada,
+            foraListagem: salvaForaListagem,
+            substituido: salvaSubstituido
           });
         } else {
           dia = diaOperacional();
           await api("POST", "lavagens/" + dia, {
-            nome: pessoa, tipo: tipoFinal, carro: carro, placa: placa, cor: corSelecionada, ts: Date.now()
+            nome: pessoa,
+            tipo: tipoFinal,
+            carro: carro,
+            placa: placa,
+            cor: corSelecionada,
+            foraListagem: salvaForaListagem,
+            substituido: salvaSubstituido,
+            ts: Date.now()
           });
         }
         toast("Salvo");
@@ -870,150 +1065,69 @@
     });
   }
 
-  function renderHistorico() {
-    const v = $("#v");
-
-    // Filtro de busca
-    const termo = normalizar(busca);
-    const listaFiltrada = termo
-      ? lista.filter((r) => {
-          const alvo = [
-            r.placa || "",
-            r.carro || "",
-            r.cor || "",
-            r.nome || "",
-            TIPOS[r.tipo] || ""
-          ].join(" ");
-          return normalizar(alvo).includes(termo);
-        })
-      : lista;
-
-    // Blocos por pessoa
-    let blocos = "";
-    if (termo && listaFiltrada.length === 0) {
-      blocos = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
-    } else {
-      blocos = Object.keys(EQUIPE).map((nome) => {
-        const meus = listaFiltrada.filter((r) => r.nome === nome).slice().reverse();
-        if (termo && meus.length === 0) return "";
-        const linhas = meus.length
-          ? meus.map((r) => {
-              const partesInfo = [];
-              if (r.carro) partesInfo.push(r.carro);
-              if (r.cor) partesInfo.push(r.cor);
-              const info = partesInfo.length ? partesInfo.join(" · ") : "—";
-              return `
-                <div class="carro-linha">
-                  <span class="placa">${esc(r.placa)}</span>
-                  <span class="info">
-                    <b>${esc(info)}</b>
-                    <small>${hora(r.ts)}</small>
-                  </span>
-                  <span class="tipo" style="background:${CORES_TIPO[r.tipo] || "#666"}">${TIPOS[r.tipo] || r.tipo}</span>
-                  <span class="acoes">
-                    <button class="ed" data-editar="${r.id}">Alterar</button>
-                    <button class="del" data-excluir-carro="${r.id}">Excluir</button>
-                  </span>
-                </div>`;
-            }).join("")
-          : `<div class="row" style="color:var(--mut)">Nenhum carro hoje</div>`;
-
-        return `
-          <div class="bloco-pessoa" style="--cor:${EQUIPE[nome]}">
-            <h3>${esc(nome)}<small>${meus.length} carro${meus.length === 1 ? "" : "s"}</small></h3>
-            ${linhas}
-          </div>`;
-      }).join("");
-      if (!blocos.trim()) {
-        blocos = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
-      }
+  function montarBlocosHistorico(filtrados, termo, temFiltro) {
+    if (filtrados.length === 0 && (termo || temFiltro)) {
+      return `<div class="busca-vazio">Nenhum carro encontrado com esse filtro.</div>`;
     }
+    const blocos = Object.keys(EQUIPE).map((nome) => {
+      const meus = filtrados.filter((r) => r.nome === nome).slice().reverse();
+      if ((termo || temFiltro) && meus.length === 0) return "";
+      const linhas = meus.length
+        ? meus.map((r) => {
+            const partesInfo = [];
+            if (r.carro) partesInfo.push(r.carro);
+            if (r.cor) partesInfo.push(r.cor);
+            const info = partesInfo.length ? partesInfo.join(" · ") : "—";
+            const marcas = [];
+            if (r.foraListagem) marcas.push(`<span class="marca fora">Fora da listagem</span>`);
+            if (r.substituido)  marcas.push(`<span class="marca subs">Substituído</span>`);
+            return `
+              <div class="carro-linha">
+                <span class="placa">${esc(r.placa)}</span>
+                <span class="info">
+                  <b>${esc(info)}</b>
+                  <small>${hora(r.ts)}</small>
+                </span>
+                ${marcas.length ? `<span class="marcas">${marcas.join("")}</span>` : ""}
+                <span class="tipo" style="background:${CORES_TIPO[r.tipo] || "#666"}">${TIPOS[r.tipo] || r.tipo}</span>
+                <span class="acoes">
+                  <button class="ed" data-editar="${r.id}">Alterar</button>
+                  <button class="del" data-excluir-carro="${r.id}">Excluir</button>
+                </span>
+              </div>`;
+          }).join("")
+        : `<div class="row" style="color:var(--mut)">Nenhum carro hoje</div>`;
+      return `
+        <div class="bloco-pessoa" style="--cor:${EQUIPE[nome]}">
+          <h3>${esc(nome)}<small>${meus.length} carro${meus.length === 1 ? "" : "s"}</small></h3>
+          ${linhas}
+        </div>`;
+    }).join("");
+    return blocos.trim() ? blocos : `<div class="busca-vazio">Nenhum carro encontrado com esse filtro.</div>`;
+  }
 
-    v.innerHTML = `
-      <button class="back" id="voltar">‹ Voltar</button>
-      <div class="topo-tela">
-        <h1>Histórico de hoje</h1>
-        <p class="data-destaque">${textoDataDestaque()}<small>${lista.length} carro${lista.length === 1 ? "" : "s"} lavado${lista.length === 1 ? "" : "s"}</small></p>
-        <input id="busca" class="busca" type="text" placeholder="Buscar por chassi, carro, cor…" value="${esc(busca)}" autocomplete="off" autocapitalize="characters" spellcheck="false">
-      </div>
-      ${avisoErro(erro)}
-      ${blocos}`;
-
-    $("#voltar").onclick = () => { busca = ""; etapa = "inicio"; carregar(); };
-
-    const campoBusca = $("#busca");
-    campoBusca.addEventListener("input", () => {
-      busca = campoBusca.value;
-      const listaAntiga = v.querySelectorAll(".bloco-pessoa, .busca-vazio");
-      listaAntiga.forEach((el) => el.remove());
-
-      const termo2 = normalizar(busca);
-      const filtrados = termo2
-        ? lista.filter((r) => {
-            const alvo = [r.placa || "", r.carro || "", r.cor || "", r.nome || "", TIPOS[r.tipo] || ""].join(" ");
-            return normalizar(alvo).includes(termo2);
-          })
-        : lista;
-
-      let html = "";
-      if (termo2 && filtrados.length === 0) {
-        html = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
-      } else {
-        html = Object.keys(EQUIPE).map((nome) => {
-          const meus = filtrados.filter((r) => r.nome === nome).slice().reverse();
-          if (termo2 && meus.length === 0) return "";
-          const linhas = meus.length
-            ? meus.map((r) => {
-                const partesInfo = [];
-                if (r.carro) partesInfo.push(r.carro);
-                if (r.cor) partesInfo.push(r.cor);
-                const info = partesInfo.length ? partesInfo.join(" · ") : "—";
-                return `
-                  <div class="carro-linha">
-                    <span class="placa">${esc(r.placa)}</span>
-                    <span class="info">
-                      <b>${esc(info)}</b>
-                      <small>${hora(r.ts)}</small>
-                    </span>
-                    <span class="tipo" style="background:${CORES_TIPO[r.tipo] || "#666"}">${TIPOS[r.tipo] || r.tipo}</span>
-                    <span class="acoes">
-                      <button class="ed" data-editar="${r.id}">Alterar</button>
-                      <button class="del" data-excluir-carro="${r.id}">Excluir</button>
-                    </span>
-                  </div>`;
-              }).join("")
-            : `<div class="row" style="color:var(--mut)">Nenhum carro hoje</div>`;
-          return `
-            <div class="bloco-pessoa" style="--cor:${EQUIPE[nome]}">
-              <h3>${esc(nome)}<small>${meus.length} carro${meus.length === 1 ? "" : "s"}</small></h3>
-              ${linhas}
-            </div>`;
-        }).join("");
-        if (!html.trim()) {
-          html = `<div class="busca-vazio">Nenhum carro encontrado para "${esc(busca)}".</div>`;
-        }
-      }
-
-      campoBusca.insertAdjacentHTML("afterend", html);
-      v.querySelectorAll("[data-editar]").forEach((b) => {
-        b.onclick = () => {
-          const r = lista.find((x) => x.id === b.dataset.editar);
-          if (!r) return;
-          pessoa = r.nome;
-          tipo = r.tipo;
-          edit = {
-            id: r.id, k: r.tipo, carro: r.carro || "",
-            placa: r.placa || "", cor: r.cor || "", origem: "historico"
-          };
-          etapa = "formulario";
-          render();
-        };
-      });
-      v.querySelectorAll("[data-excluir-carro]").forEach((b) => {
-        b.onclick = () => excluirCarro(b.dataset.excluirCarro);
-      });
+  function montarChipsFiltro() {
+    const contagem = {};
+    Object.keys(TIPOS).forEach((k) => { contagem[k] = 0; });
+    lista.forEach((r) => {
+      if (contagem[r.tipo] !== undefined) contagem[r.tipo]++;
     });
+    const chips = Object.keys(TIPOS).map((k) => {
+      const ativo = filtroTipo === k;
+      return `<button type="button" data-filtro="${k}" class="${ativo ? "on" : ""}" style="--c:${CORES_TIPO[k]}">
+        <span class="cor" style="background:${CORES_TIPO[k]}"></span>${TIPOS[k]}
+        <span class="cont">${contagem[k]}</span>
+      </button>`;
+    }).join("");
+    const ativoTodos = filtroTipo === "";
+    return `
+      <button type="button" data-filtro="" class="${ativoTodos ? "on" : ""}" style="--c:var(--brand)">
+        Todos <span class="cont">${lista.length}</span>
+      </button>
+      ${chips}`;
+  }
 
+  function religarAcoesHistorico(v) {
     v.querySelectorAll("[data-editar]").forEach((b) => {
       b.onclick = () => {
         const r = lista.find((x) => x.id === b.dataset.editar);
@@ -1021,17 +1135,75 @@
         pessoa = r.nome;
         tipo = r.tipo;
         edit = {
-          id: r.id, k: r.tipo, carro: r.carro || "",
-          placa: r.placa || "", cor: r.cor || "", origem: "historico"
+          id: r.id, k: r.tipo,
+          carro: r.carro || "",
+          placa: r.placa || "",
+          cor: r.cor || "",
+          foraListagem: !!r.foraListagem,
+          substituido: !!r.substituido,
+          origem: "historico"
         };
         etapa = "formulario";
         render();
       };
     });
-
     v.querySelectorAll("[data-excluir-carro]").forEach((b) => {
-      b.onclick = () => excluirCarro(b.dataset.excluir-carro);
+      b.onclick = () => excluirCarro(b.dataset.excluirCarro);
     });
+  }
+
+  function religarChipsFiltro(v) {
+    v.querySelectorAll("[data-filtro]").forEach((b) => {
+      b.onclick = () => {
+        const k = b.dataset.filtro;
+        filtroTipo = filtroTipo === k ? "" : k;
+        renderHistorico();
+      };
+    });
+  }
+
+  function redesenharListaHistorico(v) {
+    v.querySelectorAll(".bloco-pessoa, .busca-vazio, .filtros-tipo").forEach((el) => el.remove());
+
+    const termo = normalizar(busca);
+    const filtrados = aplicarFiltros();
+    const blocos = montarBlocosHistorico(filtrados, termo, !!filtroTipo);
+
+    const campoBusca = v.querySelector("#busca");
+    campoBusca.insertAdjacentHTML("afterend", `<div class="filtros-tipo">${montarChipsFiltro()}</div>` + blocos);
+
+    religarAcoesHistorico(v);
+    religarChipsFiltro(v);
+  }
+
+  function renderHistorico() {
+    const v = $("#v");
+
+    const termo = normalizar(busca);
+    const filtrados = aplicarFiltros();
+    const blocos = montarBlocosHistorico(filtrados, termo, !!filtroTipo);
+
+    v.innerHTML = `
+      <button class="back" id="voltar">‹ Voltar</button>
+      <div class="topo-tela">
+        <h1>Histórico de hoje</h1>
+        <p class="data-destaque">${textoDataDestaque()}<small>${lista.length} carro${lista.length === 1 ? "" : "s"} lavado${lista.length === 1 ? "" : "s"}</small></p>
+        <input id="busca" class="busca" type="text" placeholder="Buscar por chassi, carro, cor…" value="${esc(busca)}" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <div class="filtros-tipo">${montarChipsFiltro()}</div>
+      </div>
+      ${avisoErro(erro)}
+      ${blocos}`;
+
+    $("#voltar").onclick = () => { busca = ""; filtroTipo = ""; etapa = "inicio"; carregar(); };
+
+    const campoBusca = $("#busca");
+    campoBusca.addEventListener("input", () => {
+      busca = campoBusca.value;
+      redesenharListaHistorico(v);
+    });
+
+    religarAcoesHistorico(v);
+    religarChipsFiltro(v);
   }
 
   // ---------- Início ----------
