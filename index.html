@@ -439,9 +439,11 @@
     background: var(--soft);
     color: var(--mut);
   }
+  .carro-linha .marca.pol  { background: #dbeafe; color: #1e40af; }
   .carro-linha .marca.fora { background: #fef3c7; color: #92400e; }
   .carro-linha .marca.subs { background: #fee2e2; color: #991b1b; }
   @media (prefers-color-scheme: dark) {
+    .carro-linha .marca.pol  { background: #172554; color: #93c5fd; }
     .carro-linha .marca.fora { background: #4b2e07; color: #fcd34d; }
     .carro-linha .marca.subs { background: #4c1d1d; color: #fca5a5; }
   }
@@ -835,6 +837,7 @@
     const blocoMarcadores = $("#blocoMarcadores");
 
     let corSelecionada = edit ? (edit.cor || "") : "";
+    let polimento = edit ? !!edit.polimento : false;
     let foraListagem = edit ? !!edit.foraListagem : false;
     let substituido = edit ? !!edit.substituido : false;
 
@@ -847,6 +850,10 @@
       }
       blocoMarcadores.innerHTML = `
         <div class="marcadores" id="marcadoresBox">
+          <label data-chave="polimento" class="${polimento ? "marcado" : ""}">
+            <span class="caixa"></span>
+            Carro para polimento
+          </label>
           <label data-chave="foraListagem" class="${foraListagem ? "marcado" : ""}">
             <span class="caixa"></span>
             Carro fora da listagem
@@ -860,6 +867,7 @@
       blocoMarcadores.querySelectorAll("label").forEach((b) => {
         b.onclick = () => {
           const chave = b.dataset.chave;
+          if (chave === "polimento") polimento = !polimento;
           if (chave === "foraListagem") foraListagem = !foraListagem;
           if (chave === "substituido") substituido = !substituido;
           b.classList.toggle("marcado");
@@ -977,6 +985,7 @@
         tipoFinal = "outros";
       }
 
+      const salvaPolimento    = tipoFinal === "novo" ? polimento    : false;
       const salvaForaListagem = tipoFinal === "novo" ? foraListagem : false;
       const salvaSubstituido  = tipoFinal === "novo" ? substituido  : false;
 
@@ -989,6 +998,7 @@
             carro: carro,
             placa: placa,
             cor: corSelecionada,
+            polimento: salvaPolimento,
             foraListagem: salvaForaListagem,
             substituido: salvaSubstituido
           });
@@ -1000,6 +1010,7 @@
             carro: carro,
             placa: placa,
             cor: corSelecionada,
+            polimento: salvaPolimento,
             foraListagem: salvaForaListagem,
             substituido: salvaSubstituido,
             ts: Date.now()
@@ -1079,6 +1090,7 @@
             if (r.cor) partesInfo.push(r.cor);
             const info = partesInfo.length ? partesInfo.join(" · ") : "—";
             const marcas = [];
+            if (r.polimento)    marcas.push(`<span class="marca pol">Para polimento</span>`);
             if (r.foraListagem) marcas.push(`<span class="marca fora">Fora da listagem</span>`);
             if (r.substituido)  marcas.push(`<span class="marca subs">Substituído</span>`);
             return `
@@ -1139,6 +1151,7 @@
           carro: r.carro || "",
           placa: r.placa || "",
           cor: r.cor || "",
+          polimento: !!r.polimento,
           foraListagem: !!r.foraListagem,
           substituido: !!r.substituido,
           origem: "historico"
