@@ -11,6 +11,7 @@
     --ink: #12232e;
     --mut: #5d7280;
     --line: #d3dee5;
+    --soft: #e8eef2;
     --brand: #0b6e99;
     --on: #ffffff;
     --novo: #1b7f4b;
@@ -26,6 +27,7 @@
       --ink: #e8f1f6;
       --mut: #8ca3b1;
       --line: #2a3d49;
+      --soft: #1f323e;
       --brand: #3aa8d8;
       --on: #06141c;
     }
@@ -517,7 +519,10 @@
     outros: "#6b7280"
   };
 
-  const HORA_VIRADA = 20;
+  // Fuso fixo de São Luís (America/Fortaleza)
+  const FUSO = "America/Fortaleza";
+  // Cache local no celular
+  const CHAVE_CACHE = "controle-lavagem:cache:v2";
 
   const MODELOS = [
     "Dolphin Mini", "Dolphin", "Dolphin Surf", "Dolphin SE", "Dolphin Plus", "Dolphin GS",
@@ -560,20 +565,34 @@
   let busca = "";
   let filtroTipo = "";
 
+  // Controle dos dados e do cache
+  let diaDosDados = "";      
+  let temLista = false;      
+  let temIdas = false;       
+  let atualizadoEm = null;   
+  let seqCarga = 0;          
+  let ultimaCarga = 0;
+
   const $ = (s) => document.querySelector(s);
 
-  // ---------- Datas ----------
-  function diaOperacional() {
-    const agora = new Date();
-    if (agora.getHours() >= HORA_VIRADA) agora.setDate(agora.getDate() + 1);
-    const mes = String(agora.getMonth() + 1).padStart(2, "0");
-    const d = String(agora.getDate()).padStart(2, "0");
-    return agora.getFullYear() + "-" + mes + "-" + d;
+  // ---------- Datas (sempre no fuso de São Luís) ----------
+  // Calcula o dia da forma correta usando a API Intl, sem depender do relógio do aparelho.
+  function diaOperacionalDe(ms) {
+    const f = new Intl.DateTimeFormat("en-CA", {
+      timeZone: FUSO,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    });
+    const p = Object.fromEntries(f.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+    return p.year + "-" + p.month + "-" + p.day;
   }
+  
+  function diaOperacional() { return diaOperacionalDe(Date.now()); }
+  
   function dataOperacional() {
-    const agora = new Date();
-    if (agora.getHours() >= HORA_VIRADA) agora.setDate(agora.getDate() + 1);
-    return agora;
+    const [a, m, d] = diaOperacional().split("-").map(Number);
+    return new Date(a, m - 1, d);
   }
 
   function esc(texto) {
@@ -581,9 +600,13 @@
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
     }[c]));
   }
+  
   function hora(ts) {
-    return new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const n = Number(ts);
+    if (!isFinite(n) || n <= 0) return "—";
+    return new Date(n).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: FUSO });
   }
+  
   function toast(mensagem) {
     const t = $("#toast");
     t.textContent = mensagem;
@@ -591,26 +614,38 @@
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => t.classList.remove("show2"), 1800);
   }
+  
   function avisoErro(mensagem) {
     if (!mensagem) return "";
     return `<div class="msg err">${esc(mensagem)} <button class="act ed" id="tentar">Tentar de novo</button></div>`;
   }
+  
   function paraLista(objeto) {
     return Object.entries(objeto || {})
       .map(([id, registro]) => ({ id, ...registro }))
       .sort((a, b) => a.ts - b.ts);
   }
+  
   function normalizar(s) {
     return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   }
+  
   function textoDataDestaque() {
     return dataOperacional().toLocaleDateString("pt-BR", {
       weekday: "long", day: "numeric", month: "long"
     });
   }
+  
+  function textoEstado() {
+    if (carregando) return "Turno atual · atualizando…";
+    if (atualizadoEm) return "Turno atual · atualizado às " + hora(atualizadoEm.getTime());
+    return "Turno atual";
+  }
+  
   function ehModeloBYD(nome) {
     return MODELOS.includes(nome);
   }
+  
   function combina(r, termo) {
     const campos = [
       String(r.placa || ""),
@@ -621,6 +656,7 @@
     ];
     return campos.some((c) => normalizar(c).includes(termo));
   }
+  
   function aplicarFiltros() {
     const termo = normalizar(busca);
     return lista.filter((r) => {
@@ -630,6 +666,34 @@
     });
   }
 
+  // ---------- Cache local (localStorage) ----------
+  function gravarCache() {
+    try {
+      localStorage.setItem(CHAVE_CACHE, JSON.stringify({
+        dia: diaDosDados,
+        lista: lista,
+        idas: idas,
+        temLista: temLista,
+        temIdas: temIdas,
+        salvoEm: atualizadoEm ? atualizadoEm.getTime() : null
+      }));
+    } catch (e) {}
+  }
+  
+  function carregarDoCache() {
+    try {
+      const texto = localStorage.getItem(CHAVE_CACHE);
+      if (!texto) return;
+      const c = JSON.parse(texto);
+      if (!c || typeof c !== "object") return;
+      if (c.dia !== diaOperacional()) return;
+      diaDosDados = c.dia;
+      if (Array.isArray(c.lista) && c.temLista) { lista = c.lista; temLista = true; }
+      if (Array.isArray(c.idas) && c.temIdas) { idas = c.idas; temIdas = true; }
+      if (c.salvoEm && isFinite(Number(c.salvoEm))) atualizadoEm = new Date(Number(c.salvoEm));
+    } catch (e) {}
+  }
+
   // ---------- Banco ----------
   async function api(metodo, caminho, corpo) {
     let resposta;
@@ -637,7 +701,8 @@
       resposta = await fetch(DB + "/" + caminho + ".json", {
         method: metodo,
         headers: { "Content-Type": "application/json" },
-        body: corpo ? JSON.stringify(corpo) : undefined
+        body: corpo ? JSON.stringify(corpo) : undefined,
+        cache: "no-store"
       });
     } catch (e) {
       throw new Error("Sem conexão com o banco de dados. Verifique a internet.");
@@ -649,17 +714,55 @@
     return resposta.json();
   }
 
+  function sufixoCache() {
+    return " Mostrando os dados salvos" + (atualizadoEm ? " às " + hora(atualizadoEm.getTime()) : "") + ".";
+  }
+
   async function carregar() {
+    const meu = ++seqCarga;
     dia = diaOperacional();
+
+    if (diaDosDados !== dia) {
+      lista = [];
+      idas = [];
+      temLista = false;
+      temIdas = false;
+      atualizadoEm = null;
+      diaDosDados = dia;
+    }
+
     carregando = true;
     erro = "";
     erroIda = "";
     render();
-    try { lista = paraLista(await api("GET", "lavagens/" + dia)); }
-    catch (e) { erro = e.message; lista = []; }
-    try { idas = paraLista(await api("GET", "showroom/" + dia)); }
-    catch (e) { erroIda = e.message; idas = []; }
+
+    try {
+      const dados = await api("GET", "lavagens/" + dia);
+      if (meu !== seqCarga) return;
+      lista = paraLista(dados);
+      temLista = true;
+    } catch (e) {
+      if (meu !== seqCarga) return;
+      erro = e.message;
+    }
+
+    try {
+      const dados = await api("GET", "showroom/" + dia);
+      if (meu !== seqCarga) return;
+      idas = paraLista(dados);
+      temIdas = true;
+    } catch (e) {
+      if (meu !== seqCarga) return;
+      erroIda = e.message;
+    }
+
+    if (!erro && !erroIda) atualizadoEm = new Date();
+    if (erro && temLista) erro += sufixoCache();
+    if (erroIda && temIdas) erroIda += sufixoCache();
+
     carregando = false;
+    ultimaCarga = Date.now();
+    gravarCache();
     render();
   }
 
@@ -676,6 +779,7 @@
     } catch (e) { erroIda = e.message; render(); }
     ocupado = false;
   }
+  
   async function excluirIda(id) {
     if (!confirm("Excluir esta ida ao showroom?")) return;
     try {
@@ -719,23 +823,23 @@
     const botoesNomes = Object.keys(EQUIPE).map((nome) => {
       const total = lista.filter((r) => r.nome === nome).length;
       return `<button class="big nome" style="background:${EQUIPE[nome]}" data-nome="${nome}">
-        ${nome}<small>${carregando ? "…" : total + " hoje"}</small>
+        ${nome}<small>${temLista ? total + " hoje" : "…"}</small>
       </button>`;
     }).join("");
 
     v.innerHTML = `
       <div class="topo-tela">
         <h1>Controle da Lavagem</h1>
-        <p class="data-destaque">${textoDataDestaque()}<small>Turno atual</small></p>
+        <p class="data-destaque">${textoDataDestaque()}<small>${textoEstado()}</small></p>
       </div>
       ${avisoErro(erro)}
       <div class="stack">
         ${botoesNomes}
         <button class="big ida" id="botaoIda">
-          Idas no Showroom<small>${carregando ? "…" : idas.length + " hoje"}</small>
+          Idas no Showroom<small>${temIdas ? idas.length + " hoje" : "…"}</small>
         </button>
         <button class="big hist" id="botaoHist">
-          Histórico de hoje<small>${carregando ? "…" : lista.length + " carros"}</small>
+          Histórico de hoje<small>${temLista ? lista.length + " carros" : "…"}</small>
         </button>
       </div>`;
 
@@ -796,7 +900,6 @@
       return;
     }
 
-    // Faixa que mostra o tipo escolhido (sem "Tipo:" antes)
     const faixaTipo = `
       <div class="tipo-atual" style="--c:${CORES_TIPO[tipoAtual]}">
         <span class="bolinha"></span>
@@ -1003,7 +1106,7 @@
             substituido: salvaSubstituido
           });
         } else {
-          dia = diaOperacional();
+          dia = diaOperacional(); // Usa o dia exato e correto
           await api("POST", "lavagens/" + dia, {
             nome: pessoa,
             tipo: tipoFinal,
@@ -1013,7 +1116,7 @@
             polimento: salvaPolimento,
             foraListagem: salvaForaListagem,
             substituido: salvaSubstituido,
-            ts: Date.now()
+            ts: Date.now() // Horário exato
           });
         }
         toast("Salvo");
@@ -1220,16 +1323,26 @@
   }
 
   // ---------- Início ----------
+  diaDosDados = "";
+  carregarDoCache();
   carregar();
 
   let diaAtualVisivel = diaOperacional();
   setInterval(() => {
+    if (etapa === "formulario") return;
     const novoDia = diaOperacional();
     if (novoDia !== diaAtualVisivel) {
       diaAtualVisivel = novoDia;
       carregar();
     }
   }, 30000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) return;
+    if (etapa === "formulario" || ocupado) return;
+    if (Date.now() - ultimaCarga < 15000) return;
+    carregar();
+  });
 </script>
 </body>
 </html>
