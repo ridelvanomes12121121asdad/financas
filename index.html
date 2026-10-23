@@ -576,7 +576,6 @@
   const $ = (s) => document.querySelector(s);
 
   // ---------- Datas (sempre no fuso de São Luís) ----------
-  // Calcula o dia da forma correta usando a API Intl, sem depender do relógio do aparelho.
   function diaOperacionalDe(ms) {
     const f = new Intl.DateTimeFormat("en-CA", {
       timeZone: FUSO,
@@ -924,7 +923,8 @@
       </div>
 
       <label class="rotulo" for="placa">Placa ou chassi</label>
-      <input id="placa" class="placa" maxlength="4" autocomplete="off" autocapitalize="characters">
+      <!-- Aumentado o maxlength de 4 para 7 -->
+      <input id="placa" class="placa" maxlength="7" autocomplete="off" autocapitalize="characters">
 
       <label class="rotulo">Cor do veículo</label>
       <div class="cores" id="cores"></div>
@@ -1057,8 +1057,9 @@
       }
     });
 
+    // Ajustado para aceitar de 4 a 7 caracteres (permitindo os formatos antigos e novos)
     campoPlaca.addEventListener("input", () => {
-      campoPlaca.value = campoPlaca.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 4);
+      campoPlaca.value = campoPlaca.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 7);
     });
 
     caixaCores.innerHTML = CORES.map((c) =>
@@ -1081,7 +1082,9 @@
       const carro = campoCarro.value.trim();
       const placa = campoPlaca.value.trim().toUpperCase();
       if (!carro) { toast("Escolha o modelo do carro"); campoCarro.focus(); return; }
-      if (placa.length < 4) { toast("Digite os 4 caracteres"); campoPlaca.focus(); return; }
+      
+      // Regra: exige pelo menos 4 caracteres (aceita os 4 antigos, os 5 novos e as placas de 7)
+      if (placa.length < 4) { toast("Digite no mínimo 4 caracteres"); campoPlaca.focus(); return; }
 
       let tipoFinal = tipoEscolhido;
       if (!ehModeloBYD(carro)) {
@@ -1106,7 +1109,7 @@
             substituido: salvaSubstituido
           });
         } else {
-          dia = diaOperacional(); // Usa o dia exato e correto
+          dia = diaOperacional();
           await api("POST", "lavagens/" + dia, {
             nome: pessoa,
             tipo: tipoFinal,
@@ -1116,7 +1119,7 @@
             polimento: salvaPolimento,
             foraListagem: salvaForaListagem,
             substituido: salvaSubstituido,
-            ts: Date.now() // Horário exato
+            ts: Date.now()
           });
         }
         toast("Salvo");
