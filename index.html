@@ -195,6 +195,15 @@
     background-position: 14px center;
     background-size: 22px;
   }
+  input.obs {
+    font-size: 18px;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+    font-weight: 500;
+    padding: 16px 14px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
   .save {
     width: 100%;
     margin-top: 22px;
@@ -209,6 +218,26 @@
     cursor: pointer;
   }
   .save:disabled { opacity: 0.5; }
+
+  .btn-falta {
+    width: 100%;
+    margin-top: 16px;
+    padding: 16px;
+    border: 2px dashed var(--of);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--of);
+    font: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-falta:active { transform: scale(0.97); background: color-mix(in srgb, var(--of) 5%, transparent); }
+  .btn-falta:disabled { opacity: 0.5; border-style: solid; }
 
   .marcadores {
     display: grid;
@@ -315,6 +344,7 @@
   }
   .row:last-child { border-bottom: 0; }
   .row small { display: block; color: var(--mut); }
+  .row .det { color: var(--brand); font-weight: 700; }
 
   .act { border: 0; background: none; font: inherit; font-weight: 700; padding: 8px 6px; cursor: pointer; }
   .ed { color: var(--brand); }
@@ -441,13 +471,17 @@
     background: var(--soft);
     color: var(--mut);
   }
+  .carro-linha .marca.pel  { background: #fce7f3; color: #9d174d; }
   .carro-linha .marca.pol  { background: #dbeafe; color: #1e40af; }
   .carro-linha .marca.fora { background: #fef3c7; color: #92400e; }
   .carro-linha .marca.subs { background: #fee2e2; color: #991b1b; }
+  .carro-linha .marca.obs  { background: var(--soft); color: var(--mut); text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 13px; border: 1px solid var(--line); }
   @media (prefers-color-scheme: dark) {
+    .carro-linha .marca.pel  { background: #500724; color: #fbcfe8; }
     .carro-linha .marca.pol  { background: #172554; color: #93c5fd; }
     .carro-linha .marca.fora { background: #4b2e07; color: #fcd34d; }
     .carro-linha .marca.subs { background: #4c1d1d; color: #fca5a5; }
+    .carro-linha .marca.obs  { background: var(--soft); color: var(--mut); }
   }
   .carro-linha .acoes {
     display: flex;
@@ -471,6 +505,22 @@
     font-size: 16px;
   }
 
+  /* Menu de detalhe das idas ao showroom */
+  .modal-fundo {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 80; padding: 16px;
+  }
+  .modal-det {
+    background: var(--card); border-radius: 18px; padding: 22px 18px 18px;
+    width: min(100%, 520px); box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  .modal-det h3 { margin: 0 0 4px; font-size: 28px; }
+  .modal-det p { margin: 0 0 16px; color: var(--mut); font-size: 16px; }
+  .big.op { min-height: 68px; font-size: 22px; background: var(--brand); color: var(--on); box-shadow: none; }
+  .big.so { min-height: 56px; font-size: 18px; }
+  .modal-det .back { display: block; width: 100%; text-align: center; margin-top: 10px; }
+
   #toast {
     position: fixed;
     left: 50%;
@@ -484,7 +534,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
-    z-index: 70;
+    z-index: 90;
     max-width: 90vw;
     text-align: center;
   }
@@ -547,13 +597,15 @@
     { nome: "Laranja", cor: "#f97316" },
     { nome: "Marrom",  cor: "#78350f" },
     { nome: "Bege",    cor: "#e7d3b3" },
-    { nome: "Dourado", cor: "#b8860b" }
+    { nome: "Dourado", cor: "#b8860b" },
+    { nome: "Rosa",    cor: "#ec4899" }
   ];
 
   // ---------- Estado ----------
   let dia = "";
   let lista = [];
   let idas = [];
+  let faltas = []; // <--- Guarda quem faltou hoje
   let pessoa = null;
   let etapa = "inicio";
   let edit = null;
@@ -651,7 +703,8 @@
       String(r.carro || ""),
       String(r.cor || ""),
       String(r.nome || ""),
-      String(TIPOS[r.tipo] || r.tipo || "")
+      String(TIPOS[r.tipo] || r.tipo || ""),
+      String(r.observacao || "")
     ];
     return campos.some((c) => normalizar(c).includes(termo));
   }
@@ -672,6 +725,7 @@
         dia: diaDosDados,
         lista: lista,
         idas: idas,
+        faltas: faltas,
         temLista: temLista,
         temIdas: temIdas,
         salvoEm: atualizadoEm ? atualizadoEm.getTime() : null
@@ -689,6 +743,7 @@
       diaDosDados = c.dia;
       if (Array.isArray(c.lista) && c.temLista) { lista = c.lista; temLista = true; }
       if (Array.isArray(c.idas) && c.temIdas) { idas = c.idas; temIdas = true; }
+      if (Array.isArray(c.faltas)) { faltas = c.faltas; }
       if (c.salvoEm && isFinite(Number(c.salvoEm))) atualizadoEm = new Date(Number(c.salvoEm));
     } catch (e) {}
   }
@@ -724,6 +779,7 @@
     if (diaDosDados !== dia) {
       lista = [];
       idas = [];
+      faltas = [];
       temLista = false;
       temIdas = false;
       atualizadoEm = null;
@@ -755,6 +811,14 @@
       erroIda = e.message;
     }
 
+    try {
+      const dados = await api("GET", "faltas/" + dia);
+      if (meu !== seqCarga) return;
+      faltas = Object.values(dados || {}).map(f => f.nome);
+    } catch (e) {
+      if (meu !== seqCarga) return;
+    }
+
     if (!erro && !erroIda) atualizadoEm = new Date();
     if (erro && temLista) erro += sufixoCache();
     if (erroIda && temIdas) erroIda += sufixoCache();
@@ -765,15 +829,39 @@
     render();
   }
 
-  // ---------- Showroom ----------
-  async function registrarIda(nome) {
+  // ---------- Showroom e Faltas ----------
+  function escolherDetalheIda(nome) {
+    const fundo = document.createElement("div");
+    fundo.className = "modal-fundo";
+    fundo.innerHTML = `
+      <div class="modal-det" role="dialog" aria-modal="true">
+        <h3 style="color:${EQUIPE[nome]}">${esc(nome)}</h3>
+        <p>O que foi feito no showroom?</p>
+        <div class="stack">
+          <button type="button" class="big op" data-d="Limpou">Limpou</button>
+          <button type="button" class="big op" data-d="Aspirou">Aspirou</button>
+          <button type="button" class="big op" data-d="Limpou e Aspirou">Limpou e Aspirou</button>
+          <button type="button" class="big so" data-d="Apenas check-in">Só registrar</button>
+        </div>
+        <button type="button" class="back" id="detCancelar">Cancelar</button>
+      </div>`;
+    fundo.onclick = (e) => { if (e.target === fundo) fundo.remove(); };
+    fundo.querySelector("#detCancelar").onclick = () => fundo.remove();
+    fundo.querySelectorAll("[data-d]").forEach((b) => {
+      b.onclick = () => { fundo.remove(); registrarIda(nome, b.dataset.d); };
+    });
+    document.body.appendChild(fundo);
+  }
+
+  async function registrarIda(nome, detalhe) {
     if (ocupado) return;
     ocupado = true;
+    const det = detalhe || "Apenas check-in";
     try {
       dia = diaOperacional();
       const agora = Date.now();
-      await api("POST", "showroom/" + dia, { nome: nome, ts: agora });
-      toast(nome + " registrado às " + hora(agora));
+      await api("POST", "showroom/" + dia, { nome: nome, ts: agora, detalhe: det });
+      toast(nome + " · " + det + " · " + hora(agora));
       await carregar();
     } catch (e) { erroIda = e.message; render(); }
     ocupado = false;
@@ -786,6 +874,24 @@
       toast("Excluído");
       await carregar();
     } catch (e) { erroIda = e.message; render(); }
+  }
+
+  async function registrarFalta(nome, btn) {
+    if (ocupado) return;
+    if (!confirm("Tem certeza que deseja registrar falta para " + nome + " hoje?")) return;
+    
+    ocupado = true;
+    btn.disabled = true;
+    try {
+      dia = diaOperacional();
+      await api("POST", "faltas/" + dia, { nome: nome, ts: Date.now() });
+      toast("Falta registrada para " + nome);
+      await carregar();
+    } catch (e) {
+      toast("Erro ao registrar falta.");
+      btn.disabled = false;
+    }
+    ocupado = false;
   }
 
   // ---------- Excluir carro (do histórico) ----------
@@ -865,6 +971,8 @@
       `<button class="big t ${k}" data-tipo="${k}">${TIPOS[k]}</button>`
     ).join("");
 
+    const faltouHoje = faltas.includes(pessoa);
+
     v.innerHTML = `
       <button class="back" id="voltar">‹ Voltar</button>
       <div class="topo-tela">
@@ -875,7 +983,16 @@
         <p class="data-destaque">${textoDataDestaque()}<small>Toque no tipo de serviço</small></p>
       </div>
       ${avisoErro(erro)}
-      <div class="stack">${botoesTipos}</div>`;
+      <div class="stack">
+        ${botoesTipos}
+        
+        <button class="btn-falta" id="btnFalta" data-nome="${pessoa}" ${faltouHoje ? "disabled" : ""}>
+          ${faltouHoje 
+            ? `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Falta já registrada hoje`
+            : `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Registrar falta hoje`
+          }
+        </button>
+      </div>`;
 
     $("#voltar").onclick = () => { pessoa = null; etapa = "inicio"; carregar(); };
 
@@ -887,6 +1004,11 @@
         render();
       };
     });
+
+    const btnFalta = $("#btnFalta");
+    if (btnFalta && !faltouHoje) {
+      btnFalta.onclick = () => registrarFalta(pessoa, btnFalta);
+    }
   }
 
   function renderFormulario() {
@@ -923,7 +1045,6 @@
       </div>
 
       <label class="rotulo" for="placa">Placa ou chassi</label>
-      <!-- Aumentado o maxlength de 4 para 7 -->
       <input id="placa" class="placa" maxlength="7" autocomplete="off" autocapitalize="characters">
 
       <label class="rotulo">Cor do veículo</label>
@@ -931,15 +1052,20 @@
 
       <div id="blocoMarcadores"></div>
 
+      <label class="rotulo" for="observacao">Observação (opcional)</label>
+      <input id="observacao" class="obs" type="text" placeholder="Ex: Película, polimento, detalhes..." autocomplete="off" spellcheck="false">
+
       <button class="save" id="salvar">Salvar</button>`;
 
     const campoCarro = $("#carro");
     const campoPlaca = $("#placa");
+    const campoObs = $("#observacao");
     const caixaSug = $("#sugestoes");
     const caixaCores = $("#cores");
     const blocoMarcadores = $("#blocoMarcadores");
 
     let corSelecionada = edit ? (edit.cor || "") : "";
+    let pelicula = edit ? !!edit.pelicula : false;
     let polimento = edit ? !!edit.polimento : false;
     let foraListagem = edit ? !!edit.foraListagem : false;
     let substituido = edit ? !!edit.substituido : false;
@@ -953,6 +1079,10 @@
       }
       blocoMarcadores.innerHTML = `
         <div class="marcadores" id="marcadoresBox">
+          <label data-chave="pelicula" class="${pelicula ? "marcado" : ""}">
+            <span class="caixa"></span>
+            Carro para película
+          </label>
           <label data-chave="polimento" class="${polimento ? "marcado" : ""}">
             <span class="caixa"></span>
             Carro para polimento
@@ -970,6 +1100,7 @@
       blocoMarcadores.querySelectorAll("label").forEach((b) => {
         b.onclick = () => {
           const chave = b.dataset.chave;
+          if (chave === "pelicula") pelicula = !pelicula;
           if (chave === "polimento") polimento = !polimento;
           if (chave === "foraListagem") foraListagem = !foraListagem;
           if (chave === "substituido") substituido = !substituido;
@@ -980,6 +1111,7 @@
 
     campoCarro.value = edit ? (edit.carro || "") : "";
     campoPlaca.value = edit ? edit.placa : "";
+    campoObs.value = edit ? (edit.observacao || "") : "";
     campoCarro.focus();
 
     renderMarcadores();
@@ -1057,7 +1189,6 @@
       }
     });
 
-    // Ajustado para aceitar de 4 a 7 caracteres (permitindo os formatos antigos e novos)
     campoPlaca.addEventListener("input", () => {
       campoPlaca.value = campoPlaca.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 7);
     });
@@ -1081,9 +1212,9 @@
     async function salvar() {
       const carro = campoCarro.value.trim();
       const placa = campoPlaca.value.trim().toUpperCase();
+      const observacao = campoObs.value.trim();
+
       if (!carro) { toast("Escolha o modelo do carro"); campoCarro.focus(); return; }
-      
-      // Regra: exige pelo menos 4 caracteres (aceita os 4 antigos, os 5 novos e as placas de 7)
       if (placa.length < 4) { toast("Digite no mínimo 4 caracteres"); campoPlaca.focus(); return; }
 
       let tipoFinal = tipoEscolhido;
@@ -1091,6 +1222,7 @@
         tipoFinal = "outros";
       }
 
+      const salvaPelicula     = tipoFinal === "novo" ? pelicula     : false;
       const salvaPolimento    = tipoFinal === "novo" ? polimento    : false;
       const salvaForaListagem = tipoFinal === "novo" ? foraListagem : false;
       const salvaSubstituido  = tipoFinal === "novo" ? substituido  : false;
@@ -1104,9 +1236,11 @@
             carro: carro,
             placa: placa,
             cor: corSelecionada,
+            pelicula: salvaPelicula,
             polimento: salvaPolimento,
             foraListagem: salvaForaListagem,
-            substituido: salvaSubstituido
+            substituido: salvaSubstituido,
+            observacao: observacao
           });
         } else {
           dia = diaOperacional();
@@ -1116,9 +1250,11 @@
             carro: carro,
             placa: placa,
             cor: corSelecionada,
+            pelicula: salvaPelicula,
             polimento: salvaPolimento,
             foraListagem: salvaForaListagem,
             substituido: salvaSubstituido,
+            observacao: observacao,
             ts: Date.now()
           });
         }
@@ -1136,7 +1272,7 @@
       }
     }
     $("#salvar").onclick = salvar;
-    campoPlaca.onkeydown = (e) => { if (e.key === "Enter") salvar(); };
+    campoPlaca.onkeydown = (e) => { if (e.key === "Enter") campoObs.focus(); };
   }
 
   function renderIda() {
@@ -1154,7 +1290,7 @@
           <div class="row">
             <div>
               <b style="color:${EQUIPE[i.nome] || "inherit"}">${esc(i.nome)}</b>
-              <small>${hora(i.ts)}</small>
+              <small>${hora(i.ts)} · <span class="det">${esc(i.detalhe || "Apenas check-in")}</span></small>
             </div>
             <button class="act del" data-excluir="${i.id}">Excluir</button>
           </div>`).join("")
@@ -1175,7 +1311,7 @@
 
     $("#voltar").onclick = () => { etapa = "inicio"; carregar(); };
     v.querySelectorAll("[data-nome]").forEach((b) => {
-      b.onclick = () => registrarIda(b.dataset.nome);
+      b.onclick = () => escolherDetalheIda(b.dataset.nome);
     });
     v.querySelectorAll("[data-excluir]").forEach((b) => {
       b.onclick = () => excluirIda(b.dataset.excluir);
@@ -1196,9 +1332,11 @@
             if (r.cor) partesInfo.push(r.cor);
             const info = partesInfo.length ? partesInfo.join(" · ") : "—";
             const marcas = [];
+            if (r.pelicula)     marcas.push(`<span class="marca pel">Para película</span>`);
             if (r.polimento)    marcas.push(`<span class="marca pol">Para polimento</span>`);
             if (r.foraListagem) marcas.push(`<span class="marca fora">Fora da listagem</span>`);
             if (r.substituido)  marcas.push(`<span class="marca subs">Substituído</span>`);
+            if (r.observacao)   marcas.push(`<span class="marca obs">${esc(r.observacao)}</span>`);
             return `
               <div class="carro-linha">
                 <span class="placa">${esc(r.placa)}</span>
@@ -1257,9 +1395,11 @@
           carro: r.carro || "",
           placa: r.placa || "",
           cor: r.cor || "",
+          pelicula: !!r.pelicula,
           polimento: !!r.polimento,
           foraListagem: !!r.foraListagem,
           substituido: !!r.substituido,
+          observacao: r.observacao || "",
           origem: "historico"
         };
         etapa = "formulario";
